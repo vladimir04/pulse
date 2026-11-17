@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, type ElementRef, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { users } from '@shared/users';
 import { AuthService } from '../../core/auth/auth.service';
@@ -6,6 +6,8 @@ import { PulseDot } from '../../ui/pulse-dot';
 
 /** How long "signing in" shows at the least, so the state never flashes by. */
 const MINIMUM_LOADING_MS = 600;
+/** What a demo account's password field is filled with; the mock accepts any password. */
+const DEMO_PASSWORD = 'demo';
 
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -30,11 +32,15 @@ export class LoginPage {
   protected readonly emailError = signal<{ text: string; unknown: boolean } | undefined>(undefined);
   protected readonly passwordError = signal<string | undefined>(undefined);
 
-  /** A demo chip fills the email; any password will do, so the cursor goes there. */
-  protected useAccount(email: string, password: HTMLInputElement): void {
+  private readonly signInButton = viewChild<ElementRef<HTMLButtonElement>>('signInButton');
+
+  /** A demo chip fills the email and a password, and leaves the focus on Sign in. */
+  protected useAccount(email: string): void {
     this.email.set(email);
+    this.password.set(DEMO_PASSWORD);
     this.emailError.set(undefined);
-    password.focus();
+    this.passwordError.set(undefined);
+    this.signInButton()?.nativeElement.focus();
   }
 
   protected async signIn(event: Event, password: HTMLInputElement): Promise<void> {

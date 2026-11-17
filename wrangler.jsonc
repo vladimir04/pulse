@@ -13,6 +13,6 @@
   },
   "vars": {
     "MODEL": "claude-sonnet-5-5",
-    "MCP_PUBLIC_URL": "https://pulse.<account>.workers.dev/mcp",
+    "MCP_PUBLIC_URL": "https://pulse.contact-a37.workers.dev/mcp",
   },
 }

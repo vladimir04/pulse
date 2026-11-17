@@ -60,8 +60,9 @@ describe('LoginPage', () => {
     vi.useRealTimers();
   });
 
-  it('fills the email from a demo account and moves to the password', () => {
+  it('fills in a demo account, so the next press of Sign in signs in', async () => {
     open();
+    login.mockResolvedValue(mark);
 
     const chip = [...page().querySelectorAll('button')].find((button) =>
       text(button).startsWith('Mark Devos'),
@@ -70,7 +71,12 @@ describe('LoginPage', () => {
     fixture.detectChanges();
 
     expect(field('email').value).toBe('mark@pulse.com');
-    expect(document.activeElement).toBe(field('password'));
+    expect(field('password').value).not.toBe('');
+    expect(document.activeElement).toBe(page().querySelector('button[type=submit]'));
+
+    await signIn();
+    expect(login).toHaveBeenCalledWith('mark@pulse.com', field('password').value);
+    expect(navigate).toHaveBeenCalledWith('/briefing');
   });
 
   it('asks for a password before it tries to sign in', async () => {

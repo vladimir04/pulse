@@ -38,8 +38,7 @@ export class BriefingHeader {
   readonly periodLabel = input('');
 
   protected readonly eyebrow = computed(() => {
-    const date = this.date();
-    return `${this.greeting()}, ${this.firstName()}${date ? ` · ${formatLongDate(date)}` : ''}`;
+    return `${this.greeting()}, ${this.firstName()}`;
   });
 
   protected readonly headline = computed(() => {

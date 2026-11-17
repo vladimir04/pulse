@@ -76,8 +76,13 @@
         class="flex flex-col gap-4"
         [attr.aria-label]="attention() ? 'Insights, ranked' : 'Insights'"
       >
-        @for (insight of ranked(); track insight.id) {
-          <app-insight-card [insight]="insight" (explore)="showInExplore($event)" />
+        @for (item of cards(); track item.insight.id) {
+          <app-insight-card
+            actions
+            [card]="item.card"
+            (askAboutThis)="askAbout(item.insight)"
+            (viewInExplore)="showInExplore(item.insight)"
+          />
         }
         @if (attention() === 0) {
           <app-empty-state

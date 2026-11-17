@@ -1,0 +1,232 @@
+@let data = card();
+
+<ng-template #tags>
+  <div class="flex items-center justify-between gap-2">
+    @if (data.severity; as severity) {
+      <app-severity-badge [severity]="severity" />
+    }
+    @if (confidence(); as confidence) {
+      <span
+        class="flex items-center h-6 px-2 ml-auto rounded-md bg-info-tint text-info text-table font-medium"
+        >{{ confidence }}</span
+      >
+    }
+  </div>
+</ng-template>
+
+<ng-template #headline>
+  <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 min-w-0">
+    @if (delta(); as delta) {
+      <span class="text-kpi font-medium tabular" [class]="deltaColour()">{{ delta }}</span>
+    }
+    <h2 class="text-insight font-normal">{{ data.headline }}</h2>
+  </div>
+</ng-template>
+
+<ng-template #figure>
+  @if (data.chart; as chart) {
+    <figure class="flex flex-col gap-2 w-[240px] shrink-0">
+      <figcaption class="text-table text-secondary">{{ chart.title }}</figcaption>
+      @if (chart.type === 'bar') {
+        <app-bar-chart
+          class="w-[240px] h-[112px]"
+          compact
+          [spec]="chart"
+          [ariaLabel]="chartLabel()"
+        />
+      } @else {
+        <app-line-chart
+          class="w-[240px] h-[112px]"
+          compact
+          [spec]="chart"
+          [ariaLabel]="chartLabel()"
+        />
+      }
+      @if (legend().length) {
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-table" aria-hidden="true">
+          @for (series of legend(); track series.name) {
+            <span class="flex items-center gap-2">
+              @if (series.role === 'entity') {
+                <span
+                  class="size-2 shrink-0 rounded-full"
+                  [class]="dotClass(series.entityId ?? '')"
+                ></span>
+              } @else {
+                <span
+                  class="size-2 shrink-0"
+                  [class]="series.role === 'lastYear' ? 'bg-last-year' : 'bg-ink'"
+                ></span>
+              }
+              <span [class.text-secondary]="series.role === 'lastYear'">{{ series.name }}</span>
+            </span>
+          }
+        </div>
+      }
+    </figure>
+  }
+</ng-template>
+
+<ng-template #reasons>
+  <div class="flex gap-4">
+    <dt class="w-20 shrink-0 text-secondary">Why</dt>
+    <dd class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+      <p class="text-pretty">{{ data.cause }}</p>
+      @for (event of data.events; track event.date + event.title) {
+        <app-event-chip [label]="event.title" [date]="formatDayMonth(event.date)" />
+      }
+    </dd>
+  </div>
+  <div class="flex gap-4">
+    <dt class="w-20 shrink-0 text-secondary">Next move</dt>
+    <dd class="flex-1 min-w-0">
+      <p class="text-pretty">{{ data.nextMove }}</p>
+    </dd>
+  </div>
+</ng-template>
+
+<ng-template #evidenceSummary>
+  <summary
+    class="flex items-center gap-2 w-fit rounded-[2px] cursor-pointer transition-colors duration-150 ease-out hover:text-accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+  >
+    <svg lucideChevronRight class="size-4 shrink-0 group-open:rotate-90"></svg>
+    <span class="tabular">{{ data.evidence.summary }}</span>
+  </summary>
+</ng-template>
+
+@if (layout() === 'wide') {
+  <article class="flex gap-6 p-4 rounded-md border border-line bg-card">
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <!-- As the mockup for a one-line headline; a longer one wraps beside the change, and the badge stays on the first line. -->
+      <div class="flex items-start gap-4">
+        <span class="flex items-center w-20 h-7 shrink-0">
+          @if (data.severity; as severity) {
+            <app-severity-badge [severity]="severity" />
+          }
+        </span>
+        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 min-w-0">
+          @if (delta(); as delta) {
+            <span class="min-w-[88px] text-kpi font-medium tabular" [class]="deltaColour()">{{
+              delta
+            }}</span>
+          }
+          <h2 class="flex-1 min-w-0 text-insight font-normal">{{ data.headline }}</h2>
+          @if (data.context; as context) {
+            <span class="text-table text-secondary">{{ context }}</span>
+          }
+        </div>
+      </div>
+      <dl class="flex flex-col gap-2">
+        <ng-container [ngTemplateOutlet]="reasons" />
+        <div class="flex gap-4">
+          <dt class="w-20 shrink-0 text-secondary">Evidence</dt>
+          <dd class="relative flex-1 min-w-0">
+            <details class="group">
+              <ng-container [ngTemplateOutlet]="evidenceSummary" />
+              <table class="w-full mt-2 text-table">
+                <thead>
+                  <tr class="h-8 border-t border-line text-secondary">
+                    <th scope="col" class="text-left font-medium">Evidence</th>
+                    <th scope="col" class="w-24 text-right font-medium">Value</th>
+                    <th scope="col" class="w-24 text-right font-medium">Last year</th>
+                    <th scope="col" class="w-24 text-right font-medium">Change</th>
+                  </tr>
+                </thead>
+                @for (group of data.evidence.groups; track $index) {
+                  <tbody>
+                    <tr class="h-8 border-t border-line text-secondary">
+                      <th scope="rowgroup" colspan="4" class="text-left font-normal">
+                        {{ group.query }}
+                      </th>
+                    </tr>
+                    @for (row of group.rows; track $index) {
+                      <tr class="h-8 border-t border-line">
+                        <th scope="row" class="text-left font-normal">{{ row.label }}</th>
+                        <td class="text-right tabular">{{ row.value }}</td>
+                        <td class="text-right text-secondary tabular">{{ row.lastYear }}</td>
+                        @if (row.change; as change) {
+                          <td
+                            class="text-right font-medium tabular"
+                            [class]="changeText[change.tone]"
+                          >
+                            {{ change.text }}
+                          </td>
+                        } @else {
+                          <td class="text-right text-secondary">—</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                }
+              </table>
+            </details>
+            @if (actions()) {
+              <div class="absolute right-0 top-0 flex items-center gap-6">
+                <button
+                  type="button"
+                  class="rounded-[2px] text-accent-ink transition-colors duration-150 ease-out hover:text-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+                  (click)="askAboutThis.emit()"
+                >
+                  Ask about this
+                </button>
+                <button
+                  type="button"
+                  class="flex items-center gap-2 rounded-[2px] text-accent-ink transition-colors duration-150 ease-out hover:text-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+                  (click)="viewInExplore.emit()"
+                >
+                  <span>View in Explore</span>
+                  <svg lucideArrowRight class="size-4 shrink-0"></svg>
+                </button>
+              </div>
+            }
+          </dd>
+        </div>
+      </dl>
+    </div>
+    <ng-container [ngTemplateOutlet]="figure" />
+  </article>
+} @else if (compact()) {
+  <article class="flex flex-col gap-2 p-4 rounded-md border border-line bg-card">
+    <ng-container [ngTemplateOutlet]="tags" />
+    <ng-container [ngTemplateOutlet]="headline" />
+    @for (line of data.evidence.lines; track $index) {
+      <p class="text-table text-secondary tabular">{{ line }}</p>
+    }
+  </article>
+} @else {
+  <article class="flex flex-col gap-4 p-4 rounded-md border border-line bg-card">
+    <div class="flex flex-col gap-2">
+      <ng-container [ngTemplateOutlet]="tags" />
+      <ng-container [ngTemplateOutlet]="headline" />
+    </div>
+    <ng-container [ngTemplateOutlet]="figure" />
+    <dl class="flex flex-col gap-2">
+      <ng-container [ngTemplateOutlet]="reasons" />
+      <div class="flex gap-4">
+        <dt class="w-20 shrink-0 text-secondary">Evidence</dt>
+        <dd class="flex-1 min-w-0">
+          <details class="group" open>
+            <ng-container [ngTemplateOutlet]="evidenceSummary" />
+            <ul class="flex flex-col gap-1 mt-2 text-table text-secondary tabular">
+              @for (line of data.evidence.lines; track $index) {
+                <li>{{ line }}</li>
+              }
+            </ul>
+          </details>
+        </dd>
+      </div>
+    </dl>
+    @if (data.followUps?.length) {
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Follow-up questions">
+        @for (question of data.followUps; track question) {
+          <button
+            type="button"
+            class="flex items-center gap-1 min-h-8 px-3 py-1 rounded-md border border-line bg-card text-table text-left transition-colors duration-150 ease-out hover:border-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+            (click)="followUp.emit(question)"
+          >
+            {{ question }}
+          </button>
+        }
+      </div>
+    }
+  </article>
+}

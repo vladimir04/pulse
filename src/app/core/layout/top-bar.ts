@@ -8,13 +8,15 @@ import {
   LucideChevronsUpDown,
 } from '@lucide/angular';
 import type { Period } from '@shared/types';
+import { PillButton } from '../../ui/pill-button';
 import { PulseDot } from '../../ui/pulse-dot';
 import { formatDate, formatRange } from '../../util/format';
+import { AskService } from '../ask/ask.service';
 import { HotelContextService } from '../context/hotel-context.service';
 
 /**
  * The context that applies to every view: hotel, date range, comparison with last year, and
- * how fresh the figures are.
+ * how fresh the figures are. It ends with the pill that opens Ask.
  */
 @Component({
   selector: 'app-top-bar',
@@ -26,6 +28,7 @@ import { HotelContextService } from '../context/hotel-context.service';
     LucideCheck,
     LucideChevronDown,
     LucideChevronsUpDown,
+    PillButton,
     PulseDot,
   ],
   host: { class: 'contents' },
@@ -33,6 +36,10 @@ import { HotelContextService } from '../context/hotel-context.service';
 })
 export class TopBar {
   protected readonly context = inject(HotelContextService);
+  protected readonly ask = inject(AskService);
+
+  /** The key that opens Ask, as this keyboard names it. */
+  protected readonly shortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
 
   protected readonly formatRange = formatRange;
   protected readonly periodLabel = computed(() => {

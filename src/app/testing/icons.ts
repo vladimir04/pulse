@@ -48,5 +48,8 @@ export class LucidePanelLeftOpen {}
 @Component({ selector: 'svg[lucideRotateCw]', template: '' })
 export class LucideRotateCw {}
 
+@Component({ selector: 'svg[lucideX]', template: '' })
+export class LucideX {}
+
 export const provideLucideConfig = (_config: object): EnvironmentProviders =>
   makeEnvironmentProviders([]);

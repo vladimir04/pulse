@@ -1,0 +1,145 @@
+@if (ask.isOpen()) {
+  <div class="fixed inset-0 z-20 bg-ink/20" aria-hidden="true" (click)="ask.close()"></div>
+
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ask-title"
+    class="fixed inset-y-0 right-0 z-30 flex flex-col w-[480px] border-l border-line bg-page shadow-overlay"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+  >
+    <div class="flex flex-col gap-4 p-4 border-b border-line bg-card">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col">
+          <h2 id="ask-title" class="text-title font-medium">Ask</h2>
+          <p class="text-table text-muted tabular">{{ contextLine() }}</p>
+        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          class="flex items-center justify-center size-8 shrink-0 rounded-md text-secondary transition-colors duration-150 ease-out hover:bg-page hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+          (click)="ask.close()"
+        >
+          <svg lucideX class="size-4 shrink-0"></svg>
+        </button>
+      </div>
+      <form class="flex items-center gap-2" (submit)="submit($event)">
+        <input
+          #field
+          id="ask-input"
+          name="question"
+          type="text"
+          autocomplete="off"
+          aria-label="Question"
+          placeholder="Ask anything about this hotel’s numbers"
+          class="flex-1 h-10 min-w-0 px-3 rounded-md border border-line bg-card placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+          cdkFocusInitial
+          [value]="ask.question()"
+          (input)="ask.question.set(field.value)"
+        />
+        <button
+          type="submit"
+          class="flex items-center h-10 px-4 rounded-full bg-ink text-white font-medium transition-colors duration-150 ease-out hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+        >
+          Ask
+        </button>
+      </form>
+    </div>
+
+    <div
+      class="flex flex-col gap-4 flex-1 min-h-0 p-4 overflow-y-auto"
+      [attr.aria-busy]="ask.status() === 'loading' ? 'true' : null"
+    >
+      @switch (ask.status()) {
+        @case ('idle') {
+          <div class="flex flex-col gap-2">
+            <h3 id="ask-try" class="text-table font-normal text-muted">Try asking</h3>
+            <ul class="flex flex-col border-b border-line" aria-labelledby="ask-try">
+              @for (suggestion of suggestions; track suggestion) {
+                <li class="border-t border-line">
+                  <button
+                    type="button"
+                    class="flex items-center justify-between gap-4 w-full py-2.5 text-left transition-colors duration-150 ease-out hover:text-accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+                    (click)="ask.ask(suggestion)"
+                  >
+                    <span>{{ suggestion }}</span>
+                    <svg lucideChevronRight class="size-4 shrink-0 text-muted"></svg>
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+        @case ('loading') {
+          <p class="self-end max-w-[352px] px-3 py-2 rounded-md bg-accent-tint text-pretty">
+            <span class="sr-only">You asked: </span>{{ ask.asked() }}
+          </p>
+          <p class="text-table text-muted" role="status">Querying your data…</p>
+          <div
+            class="flex flex-col gap-4 p-4 rounded-md border border-line bg-card"
+            aria-hidden="true"
+          >
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-end gap-2">
+                <app-skeleton class="w-28 h-6" />
+              </div>
+              <app-skeleton class="w-full h-6" />
+              <app-skeleton class="w-2/3 h-6" />
+            </div>
+            <app-skeleton variant="chart" />
+            <div class="flex flex-col gap-2">
+              <div class="flex gap-4">
+                <span class="flex w-20 shrink-0"><app-skeleton variant="text" class="w-8" /></span>
+                <span class="flex flex-col gap-2 flex-1 min-w-0">
+                  <app-skeleton variant="text" class="w-full" />
+                  <app-skeleton variant="text" class="w-full" />
+                  <app-skeleton variant="text" class="w-3/4" />
+                </span>
+              </div>
+              <div class="flex gap-4">
+                <span class="flex w-20 shrink-0"><app-skeleton variant="text" class="w-16" /></span>
+                <span class="flex flex-col gap-2 flex-1 min-w-0">
+                  <app-skeleton variant="text" class="w-full" />
+                  <app-skeleton variant="text" class="w-2/3" />
+                </span>
+              </div>
+              <div class="flex gap-4">
+                <span class="flex w-20 shrink-0"><app-skeleton variant="text" class="w-14" /></span>
+                <span class="flex flex-col gap-2 flex-1 min-w-0">
+                  <app-skeleton variant="text" class="w-1/2" />
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+        @case ('error') {
+          <p class="self-end max-w-[352px] px-3 py-2 rounded-md bg-accent-tint text-pretty">
+            <span class="sr-only">You asked: </span>{{ ask.asked() }}
+          </p>
+          <app-inline-error
+            message="Couldn’t get an answer."
+            detail="Try again."
+            (retry)="ask.retry()"
+          />
+        }
+        @case ('answered') {
+          @if (current(); as answer) {
+            <p class="self-end max-w-[352px] px-3 py-2 rounded-md bg-accent-tint text-pretty">
+              <span class="sr-only">You asked: </span>{{ answer.question }}
+            </p>
+            <app-insight-card layout="stacked" [card]="answer.card" (followUp)="ask.ask($event)" />
+          }
+        }
+      }
+
+      @for (answer of earlier(); track $index) {
+        <div class="h-px shrink-0 bg-line"></div>
+        <p class="self-end max-w-[352px] px-3 py-2 rounded-md bg-accent-tint text-pretty">
+          <span class="sr-only">You asked: </span>{{ answer.question }}
+        </p>
+        <app-insight-card layout="stacked" compact [card]="answer.card" />
+      }
+    </div>
+  </div>
+}

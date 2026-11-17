@@ -28,17 +28,11 @@ describe('BriefingHeader', () => {
     fixture = TestBed.createComponent(BriefingHeader);
   });
 
-  it('greets the user and gives the date of the data', async () => {
+  it('greets the user and shows the period beside the headline', async () => {
     await show({ periodLabel: '1–17 Nov 2026' });
 
-    expect(eyebrow()).toBe('Morning, Mark · Tuesday 17 November');
-    expect(text(header())).toContain('1–17 Nov 2026');
-  });
-
-  it('leaves the date out until it is known', async () => {
-    await show({ date: undefined });
-
     expect(eyebrow()).toBe('Morning, Mark');
+    expect(text(header())).toContain('1–17 Nov 2026');
   });
 
   it.each([

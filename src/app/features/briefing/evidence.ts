@@ -4,6 +4,7 @@
  */
 import { glossary } from '@shared/glossary';
 import type { Insight, MetricValue } from '@shared/types';
+import type { EvidenceGroup, EvidenceRow } from '../../ui/insight-card/insight-card';
 import {
   formatCount,
   formatCurrency,
@@ -11,19 +12,6 @@ import {
   formatDelta,
   formatValue,
 } from '../../util/format';
-
-export interface EvidenceRow {
-  label: string;
-  value: string;
-  lastYear: string;
-  change?: { text: string; tone: 'better' | 'worse' | 'flat' };
-}
-
-export interface EvidenceGroup {
-  /** The tool that ran, with its arguments, for example get_kpis(hotelId: …, from: …). */
-  query: string;
-  rows: EvidenceRow[];
-}
 
 const NONE = '—';
 /** Changes smaller than this read as "about the same", as on a delta chip. */

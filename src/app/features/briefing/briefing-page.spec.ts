@@ -6,15 +6,16 @@ import {
 } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { type ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import type { HotelId } from '@shared/types';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AskService } from '../../core/ask/ask.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { HotelContextService } from '../../core/context/hotel-context.service';
 import { directory, insight, kpis, mark } from '../../testing/fixtures';
 import { BlankPage, landed, stubCharts, text } from '../../testing/helpers';
+import { InsightCard } from '../../ui/insight-card/insight-card';
 import { BriefingPage } from './briefing-page';
-import { InsightCard } from './insight-card';
 
 const SERVER_ERROR = { status: 500, statusText: 'Server Error' };
 
@@ -27,6 +28,11 @@ describe('BriefingPage', () => {
   const headline = (): string => text(page().querySelector('h1'));
   const cards = (): string[] => [...page().querySelectorAll('app-insight-card h2')].map(text);
   const busy = (): boolean => page().querySelector('main')!.getAttribute('aria-busy') === 'true';
+  /** A control on the first insight card, by its label. */
+  const onFirstCard = (label: string): HTMLButtonElement =>
+    [...page().querySelector('app-insight-card')!.querySelectorAll('button')].find(
+      (candidate) => text(candidate) === label,
+    )!;
 
   /** The request for the key figures: month to date, for the hotel on screen. */
   const kpisRequest = (hotelId: HotelId = 'hotel-central'): TestRequest =>
@@ -177,10 +183,28 @@ describe('BriefingPage', () => {
     kpisRequest().flush(kpis);
     insightsRequest().flush([insight({ hotelId: 'marina-resort' })]);
     await fixture.whenStable();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
 
-    page().querySelector<HTMLAnchorElement>('app-insight-card a')!.click();
+    onFirstCard('View in Explore').click();
 
     expect(context.hotelId()).toBe('marina-resort');
     expect(context.period()).toEqual({ from: '2026-10-01', to: '2026-10-31' });
+    expect(navigate).toHaveBeenCalledWith('/explore');
+  });
+
+  it('opens Ask with a question about the finding, on its hotel and period', async () => {
+    kpisRequest().flush(kpis);
+    insightsRequest().flush([insight()]);
+    await fixture.whenStable();
+    const ask = TestBed.inject(AskService);
+
+    onFirstCard('Ask about this').click();
+
+    expect(ask.isOpen()).toBe(true);
+    expect(ask.question()).toBe('Why profit in October 2026 was 13.7% lower than a year earlier?');
+    expect(ask.context()).toEqual({
+      hotelId: 'hotel-central',
+      period: { from: '2026-10-01', to: '2026-10-31' },
+    });
   });
 });

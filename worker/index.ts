@@ -3,6 +3,7 @@ import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
 import { tools } from '../shared/tools';
 import { authenticate } from '../shared/users';
+import { handleAsk } from './ask';
 
 /** Long enough for the sign-in form's loading state to be seen. */
 const LOGIN_LATENCY_MS = 400;
@@ -41,6 +42,10 @@ export default {
       return user
         ? Response.json({ user })
         : Response.json({ error: 'unknown_email' }, { status: 401 });
+    }
+
+    if (request.method === 'POST' && url.pathname === '/api/ask') {
+      return handleAsk(request, env);
     }
 
     // Every tool is also a GET route; its schema validates the query parameters.

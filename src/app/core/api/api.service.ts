@@ -5,6 +5,7 @@ import {
   type HttpResourceRef,
 } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import type { AskInput, AskResponse } from '@shared/ask';
 import type { getInsights } from '@shared/detectors';
 import type { GlossaryEntry } from '@shared/glossary';
 // Types only: the query module itself carries the whole dataset.
@@ -56,6 +57,11 @@ export class ApiService {
       if (failure instanceof HttpErrorResponse && failure.status === 401) return undefined;
       throw failure;
     }
+  }
+
+  /** Asks a question about one hotel. Rejects when no answer came back. */
+  ask(input: AskInput): Promise<AskResponse> {
+    return firstValueFrom(this.http.post<AskResponse>('/api/ask', input));
   }
 
   hotels(): HttpResourceRef<HotelDirectory | undefined> {

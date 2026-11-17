@@ -117,4 +117,16 @@
       <span>Loading today’s figures</span>
     }
   </div>
+
+  <button
+    type="button"
+    appPillButton
+    class="ml-2"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="ask.isOpen()"
+    (click)="ask.open()"
+  >
+    <span>Ask</span>
+    <kbd class="font-sans text-table font-normal text-muted">{{ shortcut }}</kbd>
+  </button>
 </header>

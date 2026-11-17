@@ -1,7 +1,11 @@
-<div class="flex min-h-screen bg-page font-sans text-ui text-ink tabular-nums antialiased">
+<div
+  class="flex min-h-screen bg-page font-sans text-ui text-ink tabular-nums antialiased"
+  [attr.inert]="ask.isOpen() ? '' : null"
+>
   <app-sidebar />
   <div class="flex flex-col flex-1 min-w-0">
     <app-top-bar />
     <router-outlet />
   </div>
 </div>
+<app-ask-drawer />

@@ -1,19 +1,48 @@
 import { Component, computed, effect, inject, OnDestroy, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LucideArrowRight } from '@lucide/angular';
 import type { Insight } from '@shared/types';
 import { greeting } from '@shared/users';
 import { ApiService } from '../../core/api/api.service';
+import { AskService } from '../../core/ask/ask.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { HotelContextService } from '../../core/context/hotel-context.service';
 import { EmptyState } from '../../ui/empty-state';
 import { InlineError } from '../../ui/inline-error';
+import { InsightCard, type InsightCardData } from '../../ui/insight-card/insight-card';
 import { PillButton } from '../../ui/pill-button';
 import { Skeleton } from '../../ui/skeleton';
 import { formatDate, formatPeriod } from '../../util/format';
 import { BriefingHeader } from './briefing-header';
-import { InsightCard } from './insight-card';
+import { evidenceGroups } from './evidence';
 import { KpiStrip } from './kpi-strip';
+
+const CATEGORIES: Record<Insight['category'], string> = {
+  profit: 'Profit',
+  bookings: 'Bookings',
+  restaurant: 'Restaurant',
+  channels: 'Channels',
+  staffing: 'Staffing',
+};
+
+/** A finding as the insight card shows it. */
+function toCard(insight: Insight): InsightCardData {
+  const groups = evidenceGroups(insight.evidence);
+  const items = groups.reduce((count, group) => count + group.rows.length, 0);
+  const period = insight.period.label;
+  return {
+    headline: insight.headline,
+    cause: insight.cause,
+    nextMove: insight.nextMove,
+    severity: insight.severity,
+    delta: insight.delta,
+    // What the finding is about and the period it covers: "Profit · October 2026".
+    context: `${CATEGORIES[insight.category]} · ${period.charAt(0).toUpperCase()}${period.slice(1)}`,
+    chart: insight.chart,
+    events: insight.causeEvents,
+    evidence: { summary: `${items} items`, groups },
+  };
+}
 
 /** Widths of the three skeleton cards' lines, so they look like three different findings. */
 const SKELETON_CARDS = [
@@ -45,6 +74,8 @@ const SKELETON_CARDS = [
 })
 export class BriefingPage implements OnDestroy {
   private readonly api = inject(ApiService);
+  private readonly ask = inject(AskService);
+  private readonly router = inject(Router);
   protected readonly auth = inject(AuthService);
   protected readonly context = inject(HotelContextService);
 
@@ -75,6 +106,9 @@ export class BriefingPage implements OnDestroy {
   });
   protected readonly ranked = computed(() =>
     this.insights.hasValue() ? this.insights.value() : [],
+  );
+  protected readonly cards = computed(() =>
+    this.ranked().map((insight) => ({ insight, card: toCard(insight) })),
   );
   /** Critical and warning findings: the "things that need attention". */
   protected readonly attention = computed(
@@ -131,5 +165,17 @@ export class BriefingPage implements OnDestroy {
     const hotel = this.context.hotels().find((candidate) => candidate.id === insight.hotelId);
     if (hotel) this.context.hotelId.set(hotel.id);
     this.context.period.set({ from: insight.period.from, to: insight.period.to });
+    void this.router.navigateByUrl('/explore');
+  }
+
+  /** "Ask about this": the drawer opens with a question about the finding, on its hotel and period. */
+  protected askAbout(insight: Insight): void {
+    const hotel = this.context.hotels().find((candidate) => candidate.id === insight.hotelId);
+    const headline = insight.headline.replace(/.$/, '');
+    this.ask.open({
+      question: `Why ${headline.charAt(0).toLowerCase()}${headline.slice(1)}?`,
+      hotelId: hotel?.id ?? this.context.hotelId(),
+      period: { from: insight.period.from, to: insight.period.to },
+    });
   }
 }

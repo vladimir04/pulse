@@ -268,3 +268,19 @@ export interface Insight {
   /** 1 is the most important insight for the hotel */
   rank: number;
 }
+
+/** One answer in the Ask drawer: what the model presents, plus the tool calls behind it. */
+export interface AnswerCard {
+  /** One sentence that answers the question, with the number */
+  headline: string;
+  chart?: ChartSpec;
+  cause: string;
+  /** One imperative sentence */
+  nextMove: string;
+  /** How directly the tool results support the answer */
+  confidence: 'high' | 'medium' | 'low';
+  /** Short questions that take the answer further */
+  followUps: string[];
+  /** The tool calls behind the answer, in the order they ran */
+  evidence: { name: string; input: Record<string, unknown> }[];
+}

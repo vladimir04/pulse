@@ -23,6 +23,7 @@ import type {
   Event,
   FutureBookingSnapshot,
   Hotel,
+  HotelId,
   RestaurantDay,
   RoomsByChannelDay,
   RoomsDay,
@@ -241,6 +242,13 @@ const CENTRAL_CAPTURE = { monToThu: 0.34, monToThuSetMenu: 0.26, friToSun: 0.28 
 const CENTRAL_WALK_INS = 20; // per day, Monday–Friday
 const MARINA_CAPTURE = 0.55;
 
+/**
+ * Story 6 — Mar Azul: dinner stops being part of midweek stays, so fewer resort guests eat in
+ * from Monday to Thursday. Added so the resort has a restaurant story of its own.
+ */
+const HALF_BOARD_ENDED_FROM = '2026-09-07';
+const MARINA_CAPTURE_MIDWEEK_AFTER = 0.46;
+
 /** Story 3 — Booking.com Genius at the resort: more share at a discounted rate. */
 const GENIUS: Period = ['2026-10-01', '2026-10-31'];
 const GENIUS_SHARE = 0.45;
@@ -348,6 +356,14 @@ const events: Event[] = [
   },
   {
     hotelId: MARINA,
+    date: HALF_BOARD_ENDED_FROM,
+    kind: 'restaurant',
+    title: 'Half board ended for midweek stays',
+    detail:
+      'From 7 September 2026, dinner at Mar Azul is no longer included in stays from Monday to Thursday.',
+  },
+  {
+    hotelId: MARINA,
     date: '2026-09-24',
     kind: 'city_event',
     title: 'Algarve Regatta',
@@ -391,8 +407,11 @@ function channelShares(profile: Profile, date: string): PerChannel {
 }
 
 function captureRate(hotel: Hotel, date: string, weekday: number): number {
-  if (hotel.type === 'resort') return MARINA_CAPTURE;
-  if (weekday < 1 || weekday > 4) return CENTRAL_CAPTURE.friToSun;
+  const midweek = weekday >= 1 && weekday <= 4;
+  if (hotel.type === 'resort') {
+    return midweek && date >= HALF_BOARD_ENDED_FROM ? MARINA_CAPTURE_MIDWEEK_AFTER : MARINA_CAPTURE;
+  }
+  if (!midweek) return CENTRAL_CAPTURE.friToSun;
   return date >= SET_MENU_FROM ? CENTRAL_CAPTURE.monToThuSetMenu : CENTRAL_CAPTURE.monToThu;
 }
 
@@ -616,7 +635,7 @@ function assertInvariants(data: Dataset): void {
   const assertUnique = (table: string, keys: string[]): void => {
     check(new Set(keys).size === keys.length, `duplicate keys in ${table}`);
   };
-  const hotelRooms = new Map(data.hotels.map((hotel) => [hotel.id, hotel.rooms]));
+  const hotelRooms = new Map<string, number>(data.hotels.map((hotel) => [hotel.id, hotel.rooms]));
   const roomsDay = new Map(data.roomsDays.map((day) => [`${day.hotelId}|${day.date}`, day]));
 
   for (const day of data.roomsDays) {
@@ -851,21 +870,24 @@ function printVerification(data: Dataset, fileBytes: number): void {
   );
 
   // Story 2
-  const capture = (period: Period): string[] => {
+  const capture = (hotelId: HotelId, walkIns: number, period: Period): string[] => {
     const days = data.restaurantDays.filter((row) => {
       const weekday = weekdayOf(row.date);
-      return row.hotelId === CENTRAL && within(row.date, period) && weekday >= 1 && weekday <= 4;
+      return row.hotelId === hotelId && within(row.date, period) && weekday >= 1 && weekday <= 4;
     });
     const guests = sum(
       data.roomsDays.filter(
-        (row) => days.some((day) => day.date === row.date) && row.hotelId === CENTRAL,
+        (row) => days.some((day) => day.date === row.date) && row.hotelId === hotelId,
       ),
       (row) => row.guestsInHouse,
     );
     const covers = sum(days, (row) => row.covers);
-    return [percent((covers - CENTRAL_WALK_INS * days.length) / guests), percent(covers / guests)];
+    return [percent((covers - walkIns * days.length) / guests), percent(covers / guests)];
   };
-  const [summer, autumn] = [capture(['2026-06-01', '2026-08-31']), capture(['2026-09-01', AS_OF])];
+  const [summer, autumn] = [
+    capture(CENTRAL, CENTRAL_WALK_INS, ['2026-06-01', '2026-08-31']),
+    capture(CENTRAL, CENTRAL_WALK_INS, [SET_MENU_FROM, AS_OF]),
+  ];
   printTable(
     'Brasserie Central — Monday–Thursday capture rate (covers ÷ guests in house)',
     ['', 'Jun–Aug 2026', 'Sep–Nov 2026'],
@@ -873,6 +895,14 @@ function printVerification(data: Dataset, fileBytes: number): void {
       [`Hotel guests (without ${CENTRAL_WALK_INS} walk-ins a day)`, summer[0], autumn[0]],
       ['All covers', summer[1], autumn[1]],
     ],
+  );
+
+  // Story 6
+  const halfBoard: Period = [HALF_BOARD_ENDED_FROM, AS_OF];
+  printTable(
+    'Mar Azul — Monday–Thursday capture rate (covers ÷ guests in house)',
+    ['', lastYear(halfBoard).join(' to '), halfBoard.join(' to ')],
+    [['All covers', capture(MARINA, 0, lastYear(halfBoard))[1], capture(MARINA, 0, halfBoard)[1]]],
   );
 
   // Story 3

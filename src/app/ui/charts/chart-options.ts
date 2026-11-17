@@ -25,6 +25,40 @@ export function chartOptions(spec: ChartSpec, compact: boolean): EChartsCoreOpti
   };
   const lastIndex = spec.x.length - 1;
 
+  // The compact line chart names each line at its end, as "€214k 2026": the last value, then
+  // the year when the axis is dated, else the series name. The current line also ends in a dot.
+  const endsLabelled = compact && !bars;
+  const lastYearOfAxis = /^\d{4}-/.test(spec.x[lastIndex] ?? '')
+    ? Number(spec.x[lastIndex].slice(0, 4))
+    : undefined;
+  const endName = (series: Series): string => {
+    if (lastYearOfAxis === undefined || series.role === 'entity') return series.name;
+    return `${series.role === 'lastYear' ? lastYearOfAxis - 1 : lastYearOfAxis}`;
+  };
+  const lastPoint = (series: Series): number =>
+    series.data.reduce<number>((last, value, i) => (value === null ? last : i), -1);
+  const endLabel = (series: Series) => {
+    const value = series.data[lastPoint(series)] ?? null;
+    return {
+      show: value !== null,
+      distance: 7,
+      formatter: `{value|${value === null ? '' : formatValue(value, spec.unit)}}{name|${endName(series)}}`,
+      rich: {
+        value:
+          series.role === 'current' ? { ...text, color: color.ink, fontWeight: 500 } : { ...text },
+        name: { ...text, padding: [0, 0, 0, 4] },
+      },
+    };
+  };
+  const withEndDot = (series: Series): unknown[] => {
+    const last = lastPoint(series);
+    return series.data.map((value, i) =>
+      i === last && series.role === 'current'
+        ? { value, symbol: 'circle', symbolSize: 6 }
+        : { value, symbol: 'none' },
+    );
+  };
+
   return {
     // The current period draws in once; later updates and reduced motion do not animate.
     animation: !matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -32,7 +66,7 @@ export function chartOptions(spec: ChartSpec, compact: boolean): EChartsCoreOpti
     animationEasing: 'cubicOut',
     animationDurationUpdate: 0,
     grid: compact
-      ? { left: 2, right: 2, top: 8, bottom: 20 }
+      ? { left: 2, right: endsLabelled ? 84 : 2, top: 8, bottom: 20 }
       : { left: 48, right: 8, top: 8, bottom: 24 },
     tooltip: {
       trigger: 'axis',
@@ -59,8 +93,8 @@ export function chartOptions(spec: ChartSpec, compact: boolean): EChartsCoreOpti
         ...text,
         formatter: formatAxisDate,
         hideOverlap: true,
-        alignMinLabel: 'left',
-        alignMaxLabel: 'right',
+        // Dates run edge to edge; a bar's label stays under its bar.
+        ...(bars ? {} : { alignMinLabel: 'left', alignMaxLabel: 'right' }),
         ...(compact && !bars
           ? { interval: (index: number) => index === 0 || index === lastIndex }
           : {}),
@@ -79,7 +113,10 @@ export function chartOptions(spec: ChartSpec, compact: boolean): EChartsCoreOpti
     },
     series: spec.series.map((series, index) => ({
       name: series.name,
-      data: series.data,
+      data: endsLabelled ? withEndDot(series) : series.data,
+      ...(endsLabelled
+        ? { endLabel: endLabel(series), labelLayout: { moveOverlap: 'shiftY' } }
+        : {}),
       ...(bars
         ? {
             type: 'bar',
@@ -89,7 +126,7 @@ export function chartOptions(spec: ChartSpec, compact: boolean): EChartsCoreOpti
           }
         : {
             type: 'line',
-            showSymbol: false,
+            showSymbol: endsLabelled,
             symbolSize: 6,
             itemStyle: { color: colorOf(series) },
             lineStyle: {

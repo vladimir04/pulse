@@ -26,6 +26,13 @@ const twoDecimals = new Intl.NumberFormat(LOCALE, {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+const longDate = new Intl.DateTimeFormat(LOCALE, {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
 const weekdayDayMonthYear = new Intl.DateTimeFormat(LOCALE, {
   weekday: 'short',
   day: 'numeric',
@@ -95,6 +102,25 @@ const dateParts = (date: string): Record<string, string> =>
 export function formatDate(date: string): string {
   const { weekday, day, month } = dateParts(date);
   return `${weekday} ${day} ${month}`;
+}
+
+/** An ISO date in full, without the year: Tuesday 17 November. */
+export function formatLongDate(date: string): string {
+  const parts = Object.fromEntries(
+    longDate.formatToParts(new Date(date)).map((part) => [part.type, part.value]),
+  );
+  return `${parts['weekday']} ${parts['day']} ${parts['month']}`;
+}
+
+/** A period as people name it: a whole calendar month as October 2026, anything else as a range. */
+export function formatPeriod(period: Period): string {
+  const [year, month] = period.from.split('-').map(Number);
+  const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+  if (!period.from.endsWith('-01') || period.to !== lastDay) return formatRange(period);
+  const parts = Object.fromEntries(
+    longDate.formatToParts(new Date(period.from)).map((part) => [part.type, part.value]),
+  );
+  return `${parts['month']} ${parts['year']}`;
 }
 
 /** An ISO date as day and month: 28 Sep. */

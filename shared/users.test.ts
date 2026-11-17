@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getInsights } from './detectors';
+import type { HotelId } from './types';
 import { authenticate, greeting, type Role } from './users';
 
 describe('mock users', () => {
@@ -16,10 +17,12 @@ describe('mock users', () => {
 });
 
 describe('ranking for a role', () => {
-  const first = (role?: Role) => getInsights({ hotelId: 'hotel-central', role })[0].category;
+  const first = (hotelId: HotelId, role?: Role) => getInsights({ hotelId, role })[0].category;
 
   it('moves the categories the role cares about up', () => {
-    expect(first()).toBe('profit');
-    expect(first('fnb_manager')).toBe('restaurant');
+    expect(first('hotel-central')).toBe('profit');
+    expect(first('hotel-central', 'fnb_manager')).toBe('restaurant');
+    expect(first('marina-resort')).toBe('channels');
+    expect(first('marina-resort', 'fnb_manager')).toBe('restaurant');
   });
 });

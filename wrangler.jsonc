@@ -11,4 +11,8 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*", "/mcp"],
   },
+  "vars": {
+    "MODEL": "claude-sonnet-5-5",
+    "MCP_PUBLIC_URL": "https://pulse.<account>.workers.dev/mcp",
+  },
 }

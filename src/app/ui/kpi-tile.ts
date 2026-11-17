@@ -86,8 +86,9 @@ export class KpiTile {
   protected readonly open = signal(false);
   protected readonly tipId = `kpi-tip-${tiles++}`;
   protected readonly formatted = computed(() => formatValue(this.value(), this.unit()));
-  /** Under the label, left edges aligned, 8px down. */
+  /** Under the label, 8px down: left edges aligned, or right edges where that would not fit. */
   protected readonly below: ConnectedPosition[] = [
     { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
+    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
   ];
 }

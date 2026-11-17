@@ -43,4 +43,7 @@ export class HotelContextService {
   /** Starts as month to date, once "today" is known. */
   readonly period = linkedSignal<Period | undefined>(() => this.presets()[0]?.period);
   readonly compareToLastYear = signal(true);
+
+  /** True while the page on screen is fetching its figures; the top bar's stamp waits for it. */
+  readonly figuresLoading = signal(false);
 }

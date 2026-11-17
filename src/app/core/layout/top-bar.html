@@ -109,7 +109,7 @@
   </button>
 
   <div class="flex items-center gap-2 ml-auto text-table text-secondary">
-    @if (asOfLabel(); as asOf) {
+    @if (!context.figuresLoading() && asOfLabel(); as asOf) {
       <app-pulse-dot tone="positive" motion="ring" size="md" />
       <span class="tabular">As of {{ asOf }}</span>
     } @else {

@@ -1,20 +1,102 @@
-<main class="flex flex-col gap-6 w-full max-w-[1220px] mx-auto px-8 pt-6 pb-8">
-  @if (auth.user(); as user) {
-    <p class="text-secondary">{{ greeting }}, {{ user.firstName }}</p>
-  }
+<main
+  class="flex flex-col gap-6 w-full max-w-[1220px] mx-auto px-8 pt-6 pb-8"
+  [attr.aria-busy]="insightsState() === 'loading' || kpisState() === 'loading' ? 'true' : null"
+>
+  <div class="flex flex-col gap-4">
+    <app-briefing-header
+      [greeting]="greeting"
+      [firstName]="auth.user()?.firstName ?? ''"
+      [date]="context.asOf()"
+      [hotelName]="context.hotel()?.name ?? ''"
+      [state]="insightsState()"
+      [attention]="attention()"
+      [periodLabel]="periodLabel()"
+    />
 
-  @if (insights.hasValue()) {
-    <section class="flex flex-col gap-4" aria-label="Insights">
-      @for (insight of insights.value(); track insight.id) {
-        <article class="flex flex-col items-start gap-2 p-4 rounded-md border border-line bg-card">
-          <app-severity-badge [severity]="insight.severity" />
-          <h2 class="text-insight font-normal">{{ insight.headline }}</h2>
-        </article>
-      }
-    </section>
-  } @else if (insights.error()) {
-    <p class="text-critical">Could not load insights. Is the Worker running?</p>
-  } @else {
-    <p class="text-secondary">Loading insights…</p>
+    @if (kpisState() === 'failed') {
+      <app-inline-error
+        message="Today’s key figures did not load."
+        retryingMessage="Loading today’s key figures again."
+        [retrying]="retryingKpis()"
+        (retry)="retryKpis()"
+      />
+    } @else {
+      <app-kpi-strip
+        [kpis]="kpis.hasValue() ? kpis.value() : undefined"
+        [compare]="context.compareToLastYear()"
+        [caption]="period()"
+      />
+    }
+  </div>
+
+  @switch (insightsState()) {
+    @case ('loading') {
+      <section class="flex flex-col gap-4" aria-label="Insights, loading">
+        @for (card of skeletonCards; track $index) {
+          <div class="flex gap-6 p-4 rounded-md border border-line bg-card">
+            <div class="flex flex-col gap-2 flex-1 min-w-0">
+              <div class="flex items-center gap-4">
+                <span class="flex w-20 shrink-0"><app-skeleton class="w-16 h-6" /></span>
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                  <app-skeleton class="w-20 h-7 shrink-0" />
+                  <app-skeleton class="h-6" [class]="card.headline" />
+                </div>
+              </div>
+              <div class="flex items-center gap-4 h-5">
+                <span class="flex w-20 shrink-0"><app-skeleton variant="text" class="w-8" /></span>
+                <app-skeleton variant="text" [class]="card.why" />
+              </div>
+              <div class="flex items-center gap-4 h-5">
+                <span class="flex w-20 shrink-0"><app-skeleton variant="text" class="w-16" /></span>
+                <app-skeleton variant="text" [class]="card.nextMove" />
+              </div>
+              <div class="flex items-center gap-4 h-5">
+                <span class="flex w-20 shrink-0"><app-skeleton variant="text" class="w-14" /></span>
+                <app-skeleton variant="text" class="w-20" />
+              </div>
+            </div>
+            <app-skeleton variant="chart" />
+          </div>
+        }
+      </section>
+    }
+    @case ('failed') {
+      <section class="flex flex-col gap-4" aria-label="Insights">
+        <app-inline-error
+          message="Today’s insights did not load."
+          retryingMessage="Loading today’s insights again."
+          [detail]="kpisState() === 'ready' ? 'The figures above are up to date.' : undefined"
+          [retrying]="retryingInsights()"
+          (retry)="retryInsights()"
+        />
+      </section>
+    }
+    @default {
+      <section
+        class="flex flex-col gap-4"
+        [attr.aria-label]="attention() ? 'Insights, ranked' : 'Insights'"
+      >
+        @for (insight of ranked(); track insight.id) {
+          <app-insight-card [insight]="insight" (explore)="showInExplore($event)" />
+        }
+        @if (attention() === 0) {
+          <app-empty-state
+            [title]="
+              ranked().length ? 'Nothing else needs attention.' : 'Nothing needs attention today.'
+            "
+            [text]="
+              (ranked().length ? 'Every other tracked metric is' : 'Every tracked metric is') +
+              ' within its normal range against last year.' +
+              checked()
+            "
+          >
+            <a routerLink="/explore" appPillButton>
+              <span>Open Explore</span>
+              <svg lucideArrowRight class="size-4 shrink-0"></svg>
+            </a>
+          </app-empty-state>
+        }
+      </section>
+    }
   }
 </main>

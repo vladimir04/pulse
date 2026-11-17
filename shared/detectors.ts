@@ -246,7 +246,7 @@ function profitVsLastYear(hotel: Hotel): Finding | undefined {
     delta: { value: profit.lastYear.delta, unit: profit.lastYear.deltaUnit },
     chart: {
       type: 'bar',
-      title: `Revenue and profit, ${period.label} against last year`,
+      title: 'Revenue and profit',
       unit: 'currency',
       x: ['Revenue', 'Profit'],
       series: [
@@ -308,7 +308,7 @@ function bookingPaceVsLastYear(hotel: Hotel): Finding | undefined {
     delta: { value: change, unit: 'percent' },
     chart: {
       type: 'line',
-      title: `Rooms booked for ${period.label}, running total by stay week`,
+      title: `${period.label.split(' ')[0]} rooms on the books`,
       unit: 'count',
       x: pace.byWeek.map((week) => week.weekStart),
       series: [
@@ -384,7 +384,7 @@ function restaurantCapture(hotel: Hotel): Finding | undefined {
     delta: { value: change, unit: 'points' },
     chart: {
       type: 'line',
-      title: 'Meals for every 100 hotel guests, Mondays to Thursdays, by week',
+      title: 'Monday–Thursday capture rate',
       unit: 'percent',
       x: weekly.x,
       series: [{ name: now.restaurantName, role: 'current', data: weekly.current }],
@@ -464,7 +464,7 @@ function channelNetRate(hotel: Hotel): Finding | undefined {
     delta: { value: change, unit: 'percent' },
     chart: {
       type: 'bar',
-      title: 'What the hotel keeps per room night after fees, by channel',
+      title: 'Kept per room night, by channel',
       unit: 'currency',
       x: ['Kept per room night'],
       series: rows.map((row) => ({
@@ -532,7 +532,7 @@ function directShareVsLastYear(hotel: Hotel): Finding | undefined {
     delta: { value: change, unit: 'points' },
     chart: {
       type: 'line',
-      title: 'Share of rooms booked directly with the hotel, by month',
+      title: 'Direct share of rooms',
       unit: 'percent',
       x: monthly.x,
       series: [
@@ -592,7 +592,7 @@ function staffingCostPerRoom(hotel: Hotel): Finding | undefined {
     delta: { value: perRoom.lastYear.delta, unit: perRoom.lastYear.deltaUnit },
     chart: {
       type: 'bar',
-      title: `Staff cost for every room sold, by department, ${period.label} against last year`,
+      title: 'Staff cost per room sold, by department',
       unit: 'currency',
       x: ['Rooms', 'Restaurant', 'Front desk'],
       series: [

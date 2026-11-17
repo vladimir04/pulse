@@ -57,8 +57,9 @@ function toCard(answer: Answered, asOf?: string): InsightCardData {
 
 /**
  * Ask: a question about the hotel's numbers, answered as an insight card. The shell hosts it
- * once. It opens from the top bar's Ask pill, from ⌘K or Ctrl+K anywhere, and from "Ask about
- * this" on an insight; Escape closes it and focus goes back to whatever opened it.
+ * once. It opens from the top bar's Ask pill, from ⌘K or Ctrl+K (handled by the shell), and
+ * from "Ask about this" on an insight; Escape closes it and focus goes back to whatever opened
+ * it.
  */
 @Component({
   selector: 'app-ask-drawer',
@@ -100,13 +101,7 @@ export class AskDrawer {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-      event.preventDefault();
-      if (this.ask.isOpen()) this.ask.close();
-      else this.ask.open();
-    } else if (event.key === 'Escape' && this.ask.isOpen()) {
-      this.ask.close();
-    }
+    if (event.key === 'Escape' && this.ask.isOpen()) this.ask.close();
   }
 
   protected submit(event: Event): void {

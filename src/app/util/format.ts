@@ -58,6 +58,13 @@ export function formatCurrency(value: number, { fixed = false } = {}): string {
   return withMinus(wholeEuros.format(value));
 }
 
+/** Euros to the cent, for small amounts: €18.80. With `signed`, a change: +€4.20, −€0.05, €0.00. */
+export function formatEuros(value: number, { signed = false } = {}): string {
+  const amount = `€${twoDecimals.format(Math.abs(value))}`;
+  if (Math.abs(value) < 0.005) return amount;
+  return `${value < 0 ? '−' : signed ? '+' : ''}${amount}`;
+}
+
 /** A percent value on the 0–100 scale: 68.2%. With `signed`, a change: +12.4%, −13.7%. */
 export function formatPercent(value: number, { signed = false } = {}): string {
   return `${withMinus((signed ? oneDecimalSigned : oneDecimal).format(value))}%`;

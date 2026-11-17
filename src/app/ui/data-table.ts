@@ -12,6 +12,8 @@ export interface DataTableColumn<Row> {
   width?: string;
   /** How a value reads; as it is by default. */
   format?: (value: Row[keyof Row & string]) => string;
+  /** Rows whose cell in this column is set in medium weight, to draw the eye. */
+  strong?: (row: Row) => boolean;
 }
 
 export interface DataTableSort<Row> {
@@ -41,7 +43,7 @@ export interface DataTableSort<Row> {
             >
               <button
                 type="button"
-                class="flex items-center gap-1 rounded-[2px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+                class="flex items-center gap-1 rounded-[2px] font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
                 [class]="[
                   column.numeric ? 'ml-auto' : '',
                   sorted
@@ -93,7 +95,13 @@ export interface DataTableSort<Row> {
                   }
                 </th>
               } @else {
-                <td class="px-4" [class]="column.numeric ? 'text-right tabular' : ''">
+                <td
+                  class="px-4"
+                  [class]="[
+                    column.numeric ? 'text-right tabular' : '',
+                    column.strong?.(row) ? 'font-medium' : '',
+                  ]"
+                >
                   {{ cell(row, column) }}
                 </td>
               }

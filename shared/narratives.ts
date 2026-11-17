@@ -267,3 +267,80 @@ export const staffing = {
   nextMove: (department: DepartmentCost): string =>
     `Bring ${department.name} staffing back to plan: cap agency and overtime hours and match the rota to rooms sold.`,
 };
+
+// ---------------------------------------------------------------------------------------------
+// Explore: one plain sentence over each panel, from the figures it shows. No cause is named.
+// ---------------------------------------------------------------------------------------------
+
+/** Changes smaller than this, in points or percent, read as no change. */
+const SAME_BELOW = 1;
+const RANKS = ['first', 'second', 'third', 'fourth', 'fifth'];
+const rankWord = (rank: number): string => RANKS[rank - 1] ?? ordinal(rank);
+
+/** ", 8.7 points below last year": how a percent figure compares, when it can be compared. */
+function againstLastYear(points: number | undefined, lastYear = 'last year'): string {
+  if (points === undefined) return '';
+  if (Math.abs(points) < SAME_BELOW) return `, in line with ${lastYear}`;
+  return `, ${number(points, 1)} points ${points < 0 ? 'below' : 'above'} ${lastYear}`;
+}
+
+export const explore = {
+  /** `points` is the change against last year; leave it out when there is nothing to compare. */
+  occupancy: (value: number, points?: number): string =>
+    `Occupancy averaged ${percent(value)} over this period${againstLastYear(points, 'the same weekdays last year')}.`,
+
+  /**
+   * Staff cost for every occupied room, for the hotel and for the department whose cost moved
+   * most. `before` is last year's figure, where it is known.
+   */
+  staffing: (
+    total: { now: number; before?: number },
+    departments: { name: string; now: number; before?: number }[],
+  ): string => {
+    const cost = `Staff cost ${euros(total.now, 2)} per occupied room`;
+    if (total.before === undefined) return `${cost}.`;
+    const change = total.now - total.before;
+    if (total.before !== 0 && Math.abs(change / total.before) * 100 < SAME_BELOW) {
+      return `${cost}, about the same as last year.`;
+    }
+    const [most] = departments
+      .flatMap(({ name, now, before }) =>
+        before === undefined ? [] : [{ name, change: now - before }],
+      )
+      .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+    const moved = most
+      ? ` ${sentence(most.name)} changed most, ${most.change < 0 ? 'down' : 'up'} ${euros(most.change, 2)}.`
+      : '';
+    return `${cost}, ${euros(change, 2)} ${change < 0 ? 'less' : 'more'} than last year.${moved}`;
+  },
+
+  /** Which channel earns most before its costs, and where that channel ranks after them. */
+  channels: (
+    channels: Pick<ChannelPerformance, 'name' | 'grossRevenueRank' | 'netRateRank'>[],
+  ): string => {
+    const top = channels.find((channel) => channel.grossRevenueRank === 1);
+    if (!top) return '';
+    return top.netRateRank === 1
+      ? `${top.name} brings the most gross revenue and also keeps the most per room night.`
+      : `${top.name} brings the most gross revenue but ranks ${rankWord(top.netRateRank)} on net rate.`;
+  },
+
+  /** Monday to Thursday. `points` and `percentChange` are the changes against last year. */
+  restaurant: (
+    capture: { value: number; points?: number },
+    revenuePerCover: { value: number; percentChange?: number },
+  ): string => {
+    const change = revenuePerCover.percentChange;
+    let compared = '';
+    if (change !== undefined) {
+      compared =
+        Math.abs(change) < SAME_BELOW
+          ? ', unchanged'
+          : `, ${percent(change)} ${change < 0 ? 'lower' : 'higher'} than last year`;
+    }
+    return (
+      `Monday–Thursday capture was ${percent(capture.value)}${againstLastYear(capture.points)}. ` +
+      `Revenue per cover was ${euros(revenuePerCover.value, 2)}${compared}.`
+    );
+  },
+};

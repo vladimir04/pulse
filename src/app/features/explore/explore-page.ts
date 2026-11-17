@@ -1,74 +1,99 @@
-import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, resource } from '@angular/core';
-import type { EChartsCoreOption } from 'echarts/core';
-import { NgxEchartsDirective } from 'ngx-echarts';
+import { Component, computed, effect, inject, OnDestroy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
+import type { ExploreOrigin } from '../../core/context/explore-origin';
 import { HotelContextService } from '../../core/context/hotel-context.service';
-import { chartColors } from '../../ui/charts/chart-theme';
+import { InlineError } from '../../ui/inline-error';
+import { ChannelsPanel } from './channels-panel';
+import { OccupancyPanel } from './occupancy-panel';
+import { RestaurantPanel } from './restaurant-panel';
+import { StaffingPanel } from './staffing-panel';
 
-/** Placeholder explore page: the selected hotel over the selected period. */
+/** The window of the smoothed occupancy line, in days. */
+const ROLLING_DAYS = 7;
+
+/** The insight this visit started from, if the navigation carried one. */
+function originOfVisit(): ExploreOrigin | undefined {
+  const origin: Partial<ExploreOrigin> | undefined = history.state?.openedFrom;
+  return origin?.headline && origin.hotelId && origin.period
+    ? (origin as ExploreOrigin)
+    : undefined;
+}
+
+/**
+ * Explore: the hotel on screen over the period on screen, in four panels. Each panel loads on
+ * its own, so one that fails offers a retry while the others stay.
+ */
 @Component({
-  imports: [DecimalPipe, NgxEchartsDirective],
   selector: 'app-explore-page',
+  imports: [ChannelsPanel, InlineError, OccupancyPanel, RestaurantPanel, RouterLink, StaffingPanel],
+  host: { class: 'contents' },
   templateUrl: './explore-page.html',
 })
-export class ExplorePage {
-  private readonly context = inject(HotelContextService);
-  // The query module carries the whole dataset, so it loads as its own chunk after first paint.
-  private readonly queries = resource({ loader: () => import('@shared/queries') });
+export class ExplorePage implements OnDestroy {
+  private readonly api = inject(ApiService);
+  protected readonly context = inject(HotelContextService);
 
-  protected readonly view = computed(() => {
-    const queries = this.queries.value();
-    const hotelId = this.context.hotelId();
+  private readonly origin = originOfVisit();
+  /** The insight's headline, for as long as Explore still shows its hotel and period. */
+  protected readonly openedFrom = computed(() => {
+    const [origin, period] = [this.origin, this.context.period()];
+    const unchanged =
+      origin?.hotelId === this.context.hotelId() &&
+      origin.period.from === period?.from &&
+      origin.period.to === period.to;
+    return unchanged ? origin.headline : undefined;
+  });
+
+  /** What every panel asks about: the hotel and period on screen, once the period is known. */
+  private readonly scope = computed(() => {
     const period = this.context.period();
-    const hotel = queries?.getHotels().find((candidate) => candidate.id === hotelId);
-    if (!queries || !hotel || !period) return undefined;
-    const { from, to } = period;
-    const occupancy = queries.getTimeseries({
-      hotelId,
-      metric: 'occupancy',
-      from,
-      to,
-      grain: 'day',
-    });
-    return { hotel, from, to, occupancy };
+    return period && { hotelId: this.context.hotelId(), ...period };
   });
 
-  protected readonly kpis = inject(ApiService).kpis(() => {
-    const view = this.view();
-    return view && { hotelId: view.hotel.id, from: view.from, to: view.to };
+  protected readonly kpis = this.api.kpis(this.scope);
+  protected readonly occupancy = this.api.timeseries(() => {
+    const scope = this.scope();
+    return scope && { ...scope, metric: 'occupancy', grain: 'day', rollingDays: ROLLING_DAYS };
+  });
+  protected readonly events = this.api.events(this.scope);
+  protected readonly staffing = this.api.staffing(this.scope);
+  protected readonly channels = this.api.channelPerformance(this.scope);
+  protected readonly restaurant = this.api.restaurantPerformance(this.scope);
+  protected readonly capture = this.api.timeseries(() => {
+    const scope = this.scope();
+    return (
+      scope && { ...scope, metric: 'restaurantCaptureRate', grain: 'week', weekdays: 'monToThu' }
+    );
   });
 
-  protected readonly chartOptions = computed<EChartsCoreOption>(() => {
-    const occupancy = this.view()?.occupancy;
-    const colors = chartColors();
-    return {
-      grid: { left: 40, right: 16, top: 16, bottom: 28 },
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: occupancy?.x.map((date) => date.slice(5)) ?? [],
-        axisTick: { show: false },
-        axisLine: { lineStyle: { color: colors.axisLine } },
-        axisLabel: { color: colors.axisLabel },
-      },
-      yAxis: {
-        type: 'value',
-        max: 100,
-        splitLine: { lineStyle: { color: colors.gridLine } },
-        axisLabel: { color: colors.axisLabel, formatter: '{value}%' },
-      },
-      series: [
-        {
-          name: 'Occupancy',
-          type: 'line',
-          data: occupancy?.current ?? [],
-          symbolSize: 8,
-          lineStyle: { width: 2, color: colors.current },
-          itemStyle: { color: colors.current },
-        },
-      ],
-    };
-  });
+  private readonly all = [
+    this.kpis,
+    this.occupancy,
+    this.events,
+    this.staffing,
+    this.channels,
+    this.restaurant,
+    this.capture,
+  ];
+
+  constructor() {
+    // The top bar's freshness stamp waits while this page is fetching.
+    effect(() =>
+      this.context.figuresLoading.set(this.all.some((resource) => resource.isLoading())),
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.context.figuresLoading.set(false);
+  }
+
+  /** The occupancy panel also reads the period's figure and its events. */
+  protected retryOccupancy(): void {
+    for (const resource of [this.occupancy, this.kpis, this.events]) resource.reload();
+  }
+
+  protected retryRestaurant(): void {
+    for (const resource of [this.restaurant, this.capture]) resource.reload();
+  }
 }

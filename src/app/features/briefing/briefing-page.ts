@@ -6,6 +6,7 @@ import { greeting } from '@shared/users';
 import { ApiService } from '../../core/api/api.service';
 import { AskService } from '../../core/ask/ask.service';
 import { AuthService } from '../../core/auth/auth.service';
+import type { ExploreOrigin } from '../../core/context/explore-origin';
 import { HotelContextService } from '../../core/context/hotel-context.service';
 import { EmptyState } from '../../ui/empty-state';
 import { InlineError } from '../../ui/inline-error';
@@ -107,9 +108,18 @@ export class BriefingPage implements OnDestroy {
   protected readonly ranked = computed(() =>
     this.insights.hasValue() ? this.insights.value() : [],
   );
-  protected readonly cards = computed(() =>
-    this.ranked().map((insight) => ({ insight, card: toCard(insight) })),
-  );
+  /**
+   * Each finding as a card. Explore shows what has happened, so a finding about a period that
+   * has not started yet (rooms on the books for next month) has nothing to open there.
+   */
+  protected readonly cards = computed(() => {
+    const asOf = this.context.asOf();
+    return this.ranked().map((insight) => ({
+      insight,
+      card: toCard(insight),
+      explorable: asOf !== undefined && insight.period.from <= asOf,
+    }));
+  });
   /** Critical and warning findings: the "things that need attention". */
   protected readonly attention = computed(
     () =>
@@ -160,12 +170,15 @@ export class BriefingPage implements OnDestroy {
     this.insights.reload();
   }
 
-  /** "View in Explore": Explore opens on the finding's hotel and period. */
+  /** "View in Explore": Explore opens on the finding's hotel and period, and says where from. */
   protected showInExplore(insight: Insight): void {
     const hotel = this.context.hotels().find((candidate) => candidate.id === insight.hotelId);
-    if (hotel) this.context.hotelId.set(hotel.id);
-    this.context.period.set({ from: insight.period.from, to: insight.period.to });
-    void this.router.navigateByUrl('/explore');
+    const hotelId = hotel?.id ?? this.context.hotelId();
+    const period = { from: insight.period.from, to: insight.period.to };
+    this.context.hotelId.set(hotelId);
+    this.context.period.set(period);
+    const openedFrom: ExploreOrigin = { headline: insight.headline, hotelId, period };
+    void this.router.navigateByUrl('/explore', { state: { openedFrom } });
   }
 
   /** "Ask about this": the drawer opens with a question about the finding, on its hotel and period. */

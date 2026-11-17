@@ -299,6 +299,8 @@ const events: Event[] = [
     date: '2025-01-10',
     kind: 'city_event',
     title: 'Brussels Motor Show',
+    label: 'Motor Show',
+    endDate: MOTOR_SHOW[0][1],
     detail: 'Brussels Expo, 10–19 January 2025.',
   },
   {
@@ -306,6 +308,8 @@ const events: Event[] = [
     date: '2026-01-09',
     kind: 'city_event',
     title: 'Brussels Motor Show',
+    label: 'Motor Show',
+    endDate: MOTOR_SHOW[1][1],
     detail: 'Brussels Expo, 9–18 January 2026.',
   },
   {
@@ -313,6 +317,7 @@ const events: Event[] = [
     date: SET_MENU_FROM,
     kind: 'restaurant',
     title: 'Dinner switched from à la carte to set menu',
+    label: 'Set menu at dinner',
     detail: 'Brasserie Central serves a fixed three-course dinner menu from 1 September 2026.',
   },
   {
@@ -320,6 +325,8 @@ const events: Event[] = [
     date: '2026-09-28',
     kind: 'rate_change',
     title: 'Published rate +15% for October (trade-fair season)',
+    label: 'Published rate +15%',
+    endDate: '2026-10-31',
     detail:
       'Applies to stays from 1 to 31 October 2026. Corporate and travel-agent contract rates are unchanged.',
   },
@@ -328,6 +335,8 @@ const events: Event[] = [
     date: '2026-10-06',
     kind: 'staffing',
     title: 'Housekeeping: 4 staff on sick leave, agency cover until 24 Oct',
+    label: 'Housekeeping sick leave',
+    endDate: '2026-10-24',
     detail:
       'Agency housekeepers cover 6–24 October 2026 at a premium. 6 rooms are out of service from 8 to 17 October.',
   },
@@ -336,6 +345,7 @@ const events: Event[] = [
     date: '2026-11-03',
     kind: 'market',
     title: 'Two corporate accounts cut Q4 travel budgets',
+    label: 'Corporate budgets cut',
     detail:
       'Both accounts have paused non-essential travel to Brussels until the end of December 2026.',
   },
@@ -344,6 +354,8 @@ const events: Event[] = [
     date: '2025-09-25',
     kind: 'city_event',
     title: 'Algarve Regatta',
+    label: 'Regatta',
+    endDate: REGATTA[0][1],
     detail: 'Vilamoura marina, 25–28 September 2025.',
   },
   {
@@ -351,6 +363,8 @@ const events: Event[] = [
     date: '2026-05-01',
     kind: 'promotion',
     title: 'Book direct, free breakfast (May–Aug)',
+    label: 'Book-direct offer',
+    endDate: BOOK_DIRECT[1],
     detail:
       'Breakfast included for bookings made on the hotel website, stays from 1 May to 31 August 2026.',
   },
@@ -359,6 +373,7 @@ const events: Event[] = [
     date: HALF_BOARD_ENDED_FROM,
     kind: 'restaurant',
     title: 'Half board ended for midweek stays',
+    label: 'Half board ended',
     detail:
       'From 7 September 2026, dinner at Mar Azul is no longer included in stays from Monday to Thursday.',
   },
@@ -367,6 +382,8 @@ const events: Event[] = [
     date: '2026-09-24',
     kind: 'city_event',
     title: 'Algarve Regatta',
+    label: 'Regatta',
+    endDate: REGATTA[1][1],
     detail: 'Vilamoura marina, 24–27 September 2026.',
   },
   {
@@ -374,6 +391,8 @@ const events: Event[] = [
     date: '2026-10-01',
     kind: 'promotion',
     title: 'Booking.com Genius −15%, 1–31 Oct',
+    label: 'Genius −15%',
+    endDate: GENIUS[1],
     detail:
       'Genius members get 15% off the published rate on Booking.com for stays in October 2026.',
   },

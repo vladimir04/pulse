@@ -85,7 +85,11 @@ export interface Event {
     | 'restaurant'
     | 'market';
   title: string;
+  /** A few words for a chart, where the title is too long */
+  label: string;
   detail: string;
+  /** The last day of an event that ran for a while */
+  endDate?: string;
 }
 
 export interface Dataset {
@@ -155,6 +159,8 @@ export interface Timeseries {
   current: number[];
   /** The same days 364 days earlier, per bucket; null where the data does not go back that far. */
   lastYear: (number | null)[];
+  /** Set on a smoothed series: each point covers this many days, ending on its date. */
+  rollingDays?: number;
 }
 
 export interface ChannelPerformance {
@@ -211,7 +217,12 @@ export interface RestaurantPerformance {
   margin: MetricValue;
   split: Record<
     'monToThu' | 'friToSun',
-    { covers: MetricValue; captureRate: MetricValue; revenuePerCover: MetricValue }
+    {
+      covers: MetricValue;
+      captureRate: MetricValue;
+      revenuePerCover: MetricValue;
+      margin: MetricValue;
+    }
   >;
 }
 

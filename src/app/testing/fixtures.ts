@@ -93,6 +93,7 @@ const profit: Insight = {
       date: '2026-09-28',
       kind: 'rate_change',
       title: 'Published rate +15% for October',
+      label: 'Published rate +15%',
       detail: 'The published rate went up 15% for the trade-fair season.',
     },
   ],

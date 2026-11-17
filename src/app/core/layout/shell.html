@@ -8,4 +8,7 @@
     <router-outlet />
   </div>
 </div>
-<app-ask-drawer />
+<!-- Downloaded while the browser is idle, or on the first open: it is not needed to show a page. -->
+@defer (when ask.isOpen(); prefetch on idle) {
+  <app-ask-drawer />
+}

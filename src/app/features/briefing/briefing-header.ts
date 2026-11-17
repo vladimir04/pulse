@@ -1,6 +1,5 @@
 import { Component, computed, input } from '@angular/core';
 import { Skeleton } from '../../ui/skeleton';
-import { formatLongDate } from '../../util/format';
 
 /**
  * The top of the briefing: who it is for and when, then one line that says how the hotel is

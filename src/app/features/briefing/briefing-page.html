@@ -78,7 +78,8 @@
       >
         @for (item of cards(); track item.insight.id) {
           <app-insight-card
-            actions
+            canAsk
+            [canExplore]="item.explorable"
             [card]="item.card"
             (askAboutThis)="askAbout(item.insight)"
             (viewInExplore)="showInExplore(item.insight)"

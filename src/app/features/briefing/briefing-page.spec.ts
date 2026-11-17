@@ -189,7 +189,15 @@ describe('BriefingPage', () => {
 
     expect(context.hotelId()).toBe('marina-resort');
     expect(context.period()).toEqual({ from: '2026-10-01', to: '2026-10-31' });
-    expect(navigate).toHaveBeenCalledWith('/explore');
+    expect(navigate).toHaveBeenCalledWith('/explore', {
+      state: {
+        openedFrom: {
+          headline: 'Profit in October 2026 was 13.7% lower than a year earlier.',
+          hotelId: 'marina-resort',
+          period: { from: '2026-10-01', to: '2026-10-31' },
+        },
+      },
+    });
   });
 
   it('opens Ask with a question about the finding, on its hotel and period', async () => {

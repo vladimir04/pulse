@@ -117,7 +117,9 @@ export const tools: Tool[] = [
       'One metric of one hotel over time, by day, week or month, with last year alongside: x holds ' +
       'the bucket labels (date, Monday of the week, or YYYY-MM), current and lastYear the values in ' +
       'the returned unit. Works for every glossary metric except bookingPace and bookingPickup; ' +
-      'list_metrics gives the keys and formulas. Use it to see when something changed. ' +
+      'list_metrics gives the keys and formulas. Use it to see when something changed. With ' +
+      'grain day, rollingDays smooths the series: each point then covers that many days ending ' +
+      'on its date. ' +
       CONVENTIONS,
     schema: timeseriesInput,
     run: getTimeseries,
@@ -150,7 +152,7 @@ export const tools: Tool[] = [
     description:
       'The hotel’s restaurant over a period, each number with last year: covers (meals served), ' +
       'revenue, ingredientCost, staffingCost (restaurant staff only), captureRate, revenuePerCover ' +
-      'and margin, plus covers, captureRate and revenuePerCover split into Monday–Thursday and ' +
+      'and margin, plus covers, captureRate, revenuePerCover and margin split into Monday–Thursday and ' +
       `Friday–Sunday. ${formulas('restaurantCaptureRate', 'revenuePerCover', 'restaurantMargin')}. ` +
       CONVENTIONS,
     schema: restaurantPerformanceInput,
@@ -170,8 +172,9 @@ export const tools: Tool[] = [
     name: 'get_events',
     description:
       'Dated events for one hotel that explain changes in its numbers: rate changes, promotions, ' +
-      'city events, staffing, maintenance, restaurant changes and market news, each with a title ' +
-      'and detail. An event affects the days after its date, so look a few weeks before the ' +
+      'city events, staffing, maintenance, restaurant changes and market news, each with a title, ' +
+      'a short label, a detail and, when it ran for a while, an endDate. Events still running in ' +
+      'the period are included. An event affects the days after its date, so look a few weeks before the ' +
       `period you are explaining. ${CONVENTIONS}`,
     schema: eventsInput,
     run: getEvents,

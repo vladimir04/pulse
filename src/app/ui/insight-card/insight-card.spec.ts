@@ -27,6 +27,7 @@ const finding: InsightCardData = {
       date: '2026-09-28',
       kind: 'rate_change',
       title: 'Published rate +15% for October',
+      label: 'Published rate +15%',
       detail: 'The published rate went up 15% for the trade-fair season.',
     },
   ],
@@ -142,7 +143,7 @@ describe('InsightCard', () => {
   });
 
   it('reports "Ask about this" and "View in Explore" and leaves the rest to the page', async () => {
-    await show(finding, { actions: true });
+    await show(finding, { canAsk: true, canExplore: true });
     const clicked: string[] = [];
     fixture.componentInstance.askAboutThis.subscribe(() => clicked.push('ask'));
     fixture.componentInstance.viewInExplore.subscribe(() => clicked.push('explore'));

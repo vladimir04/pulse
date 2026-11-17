@@ -87,8 +87,10 @@ export class InsightCard {
   readonly layout = input<'wide' | 'stacked'>('wide');
   /** Stacked only: the tags, the headline and the evidence in a line. */
   readonly compact = input(false, { transform: booleanAttribute });
-  /** Offer "Ask about this" and "View in Explore". */
-  readonly actions = input(false, { transform: booleanAttribute });
+  /** Offer "Ask about this". */
+  readonly canAsk = input(false, { transform: booleanAttribute });
+  /** Offer "View in Explore". */
+  readonly canExplore = input(false, { transform: booleanAttribute });
 
   readonly viewInExplore = output<void>();
   readonly askAboutThis = output<void>();

@@ -111,7 +111,11 @@ function eventsNear(
   leadDays = EVENT_LEAD_DAYS,
 ): Event[] {
   const args = { hotelId, from: addDays(period.from, -leadDays), to: period.to };
-  return run('get_events', getEvents, args).filter((event) => kinds.includes(event.kind));
+  // A cause starts shortly before or during the period; one that began earlier and is only
+  // still running is not what changed.
+  return run('get_events', getEvents, args).filter(
+    (event) => kinds.includes(event.kind) && event.date >= args.from,
+  );
 }
 
 const lastYearOf = (value: MetricValue): number => value.lastYear?.value ?? 0;

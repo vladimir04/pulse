@@ -262,8 +262,19 @@ export const timeseriesInput = z
       .enum(['all', 'monToThu', 'friToSun'])
       .optional()
       .describe('Count only these weekdays; all by default'),
+    rollingDays: z.coerce
+      .number()
+      .int()
+      .min(2)
+      .max(28)
+      .optional()
+      .describe('Smooths a daily series: each point covers this many days, ending on its date'),
   })
-  .refine(inOrder, outOfOrder);
+  .refine(inOrder, outOfOrder)
+  .refine((input) => input.rollingDays === undefined || input.grain === 'day', {
+    message: '`rollingDays` needs `grain` to be day',
+    path: ['rollingDays'],
+  });
 export const channelPerformanceInput = z.object(periodShape).refine(inOrder, outOfOrder);
 export const bookingPaceInput = z
   .object({
@@ -323,13 +334,20 @@ export function getTimeseries(input: z.infer<typeof timeseriesInput>): Timeserie
   const keep = keeps[input.weekdays ?? 'all'];
   const current = new Map<string, Totals>();
   const lastYear = new Map<string, Totals>();
+  // A smoothed point sums the days up to its date, so it is still the metric of summed
+  // measures; an ordinary point sums its own bucket.
+  const window = input.rollingDays ?? 1;
   for (const date of eachDay(actualsWithin(input))) {
-    const day = hotel.days.get(date);
-    if (!day || !keep(date)) continue;
+    if (!hotel.days.has(date) || !keep(date)) continue;
     const bucket = bucketOf[input.grain](date);
-    addTotals(getOrAdd(current, bucket, emptyTotals), day);
-    const before = hotel.days.get(addDays(date, -YEAR_DAYS));
-    if (before) addTotals(getOrAdd(lastYear, bucket, emptyTotals), before);
+    for (let back = 0; back < window; back++) {
+      const day = addDays(date, -back);
+      const now = hotel.days.get(day);
+      if (!now || !keep(day)) continue;
+      addTotals(getOrAdd(current, bucket, emptyTotals), now);
+      const before = hotel.days.get(addDays(day, -YEAR_DAYS));
+      if (before) addTotals(getOrAdd(lastYear, bucket, emptyTotals), before);
+    }
   }
 
   const { unit } = glossaryEntry(input.metric);
@@ -345,6 +363,7 @@ export function getTimeseries(input: z.infer<typeof timeseriesInput>): Timeserie
       const before = lastYear.get(bucket);
       return before && before.days === current.get(bucket)!.days ? value(before) : null;
     }),
+    ...(input.rollingDays ? { rollingDays: input.rollingDays } : {}),
   };
 }
 
@@ -463,6 +482,7 @@ export function getRestaurantPerformance(input: PeriodInput): RestaurantPerforma
       covers: amount('count', compared, (totals) => totals.covers),
       captureRate: metric('restaurantCaptureRate', compared),
       revenuePerCover: metric('revenuePerCover', compared),
+      margin: metric('restaurantMargin', compared),
     };
   };
   return {
@@ -505,8 +525,9 @@ export function getStaffing(input: PeriodInput): StaffingPerformance {
   };
 }
 
+/** The events that started in the period or were still running in it, oldest first. */
 export function getEvents(input: PeriodInput): Event[] {
   return hotelIndex(input.hotelId)
-    .events.filter((event) => event.date >= input.from && event.date <= input.to)
+    .events.filter((event) => event.date <= input.to && (event.endDate ?? event.date) >= input.from)
     .sort((a, b) => a.date.localeCompare(b.date));
 }

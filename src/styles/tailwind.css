@@ -10,6 +10,12 @@
     border-color: var(--color-line);
   }
 
+  button:not(:disabled):not([aria-disabled='true']),
+  select:not(:disabled):not([aria-disabled='true']),
+  summary:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
   summary {
     list-style: none;
   }

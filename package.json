@@ -1,0 +1,40 @@
+{
+  "name": "pulse",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "ng serve --proxy-config proxy.conf.json",
+    "dev:worker": "wrangler dev",
+    "build": "ng build",
+    "deploy": "ng build && wrangler deploy",
+    "typecheck": "wrangler types && ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json"
+  },
+  "private": true,
+  "packageManager": "npm@10.9.9",
+  "dependencies": {
+    "@angular/cdk": "^22.2.7",
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@angular/router": "^22.2.0",
+    "@modelcontextprotocol/server": "2.4.0",
+    "agents": "^0.33.0",
+    "echarts": "^6.1.0",
+    "ngx-echarts": "^22.0.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.2.7",
+    "@angular/cli": "^22.2.7",
+    "@angular/compiler-cli": "^22.2.0",
+    "@tailwindcss/postcss": "^4.3.5",
+    "postcss": "^8.5.33",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~6.0.2",
+    "wrangler": "^4.163.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pulse",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-16",
+  // The Agents SDK MCP handler imports node:async_hooks.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist/pulse/browser",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/mcp"],
+  },
+}

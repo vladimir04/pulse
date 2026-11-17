@@ -1,0 +1,11 @@
+/* Type-checks the Worker and the shared module against the Workers runtime types
+   that `wrangler types` generates into worker-configuration.d.ts. Wrangler does the bundling. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["worker/**/*.ts", "shared/**/*.ts", "worker-configuration.d.ts"]
+}

@@ -1,0 +1,19 @@
+{
+  "hotel": { "id": "hotel-1", "name": "Pulse Demo Hotel", "rooms": 120 },
+  "days": [
+    { "date": "2026-11-01", "roomsAvailable": 120, "roomsSold": 84, "roomRevenue": 9912 },
+    { "date": "2026-11-02", "roomsAvailable": 120, "roomsSold": 78, "roomRevenue": 8736 },
+    { "date": "2026-11-03", "roomsAvailable": 120, "roomsSold": 86, "roomRevenue": 9890 },
+    { "date": "2026-11-04", "roomsAvailable": 120, "roomsSold": 93, "roomRevenue": 11067 },
+    { "date": "2026-11-05", "roomsAvailable": 120, "roomsSold": 97, "roomRevenue": 12028 },
+    { "date": "2026-11-06", "roomsAvailable": 120, "roomsSold": 108, "roomRevenue": 15012 },
+    { "date": "2026-11-07", "roomsAvailable": 120, "roomsSold": 114, "roomRevenue": 16644 },
+    { "date": "2026-11-08", "roomsAvailable": 120, "roomsSold": 88, "roomRevenue": 10560 },
+    { "date": "2026-11-09", "roomsAvailable": 120, "roomsSold": 81, "roomRevenue": 9153 },
+    { "date": "2026-11-10", "roomsAvailable": 120, "roomsSold": 90, "roomRevenue": 10530 },
+    { "date": "2026-11-11", "roomsAvailable": 120, "roomsSold": 96, "roomRevenue": 11616 },
+    { "date": "2026-11-12", "roomsAvailable": 120, "roomsSold": 101, "roomRevenue": 12726 },
+    { "date": "2026-11-13", "roomsAvailable": 120, "roomsSold": 111, "roomRevenue": 15762 },
+    { "date": "2026-11-14", "roomsAvailable": 120, "roomsSold": 116, "roomRevenue": 17284 }
+  ]
+}

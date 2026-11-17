@@ -39,6 +39,23 @@ Each tool is an MCP tool and a GET route. Dates are `YYYY-MM-DD`; "today" is the
 | `get_events`                 | `/api/events`                 | `hotelId`, `from`, `to`                    |
 | `get_insights`               | `/api/insights`               | `hotelId`                                  |
 
+## Authentication is a mock
+
+Sign-in exists to show how the app adapts to who is using it. It is a UI and UX mock, not
+security: `POST /api/login` accepts any non-empty password for the three demo users below, the
+profile is kept in the browser's `localStorage` under `pulse.user`, and every API route and MCP
+tool answers without it. Do not put real data behind it.
+
+| Email               | User           | Role             | Default hotel         |
+| ------------------- | -------------- | ---------------- | --------------------- |
+| `mark@example.com`  | Mark Devos     | General Manager  | Hotel Central         |
+| `sofia@example.com` | Sofia Marques  | Revenue Director | Marina Resort Algarve |
+| `tomas@example.com` | Tomás Ferreira | F&B Manager      | Marina Resort Algarve |
+
+The role only changes the order of insights: `get_insights` and `/api/insights` take an optional
+`role`, which moves the categories that role cares about up the ranking. The app's routes are
+`/login`, `/briefing` and `/explore`; the last two send signed-out visitors to `/login`.
+
 ## Scripts
 
 | Script               | What it does                                                          |

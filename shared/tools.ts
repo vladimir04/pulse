@@ -183,7 +183,9 @@ export const tools: Tool[] = [
       'ranked (rank 1 first). Each has a severity (critical, warning, positive or info), a ' +
       'plain-English headline with the number, the metric (glossary key) and its change in delta, ' +
       'the likely cause with the events behind it, a suggested next move, a chart, and the queries ' +
-      `it ran as evidence. Start here when asked what needs attention. ${CONVENTIONS}`,
+      'it ran as evidence. Pass a role to rank for that reader: general_manager favours profit and ' +
+      'staffing, revenue_director bookings and channels, fnb_manager the restaurant. Start here ' +
+      `when asked what needs attention. ${CONVENTIONS}`,
     schema: insightsInput,
     run: getInsights,
   }),

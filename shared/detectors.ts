@@ -19,12 +19,32 @@ import {
   hotelIdSchema,
   weekStart,
 } from './queries';
-import type { ChannelPerformance, Event, Hotel, Insight, MetricValue, StaffingDay } from './types';
+import type {
+  ChannelPerformance,
+  Event,
+  Hotel,
+  HotelId,
+  Insight,
+  MetricValue,
+  StaffingDay,
+} from './types';
+import { categoryWeight, ROLES } from './users';
 
-export const insightsInput = z.object({ hotelId: hotelIdSchema });
+export const insightsInput = z.object({
+  hotelId: hotelIdSchema,
+  role: z
+    .enum(ROLES)
+    .optional()
+    .describe('Rank for this role: insights in the categories it cares about move up'),
+});
 
 const MAX_INSIGHTS = 5;
-const SEVERITY_ORDER: Insight['severity'][] = ['critical', 'warning', 'positive', 'info'];
+const SEVERITY_SCORE: Record<Insight['severity'], number> = {
+  critical: 4,
+  warning: 3,
+  positive: 2,
+  info: 1,
+};
 
 /** Thresholds, in the delta's unit. */
 const PROFIT_CHANGE = 8; // percent
@@ -85,7 +105,7 @@ const lastDays = (days: number, label: string): LabelledPeriod => ({
 
 function eventsNear(
   run: Run,
-  hotelId: string,
+  hotelId: HotelId,
   period: { from: string; to: string },
   kinds: Event['kind'][],
   leadDays = EVENT_LEAD_DAYS,
@@ -601,18 +621,28 @@ const detectors = [
 // Ranking
 // ---------------------------------------------------------------------------------------------
 
-/** The hotel's insights, most important first, at most five. */
-export function getInsights({ hotelId }: z.infer<typeof insightsInput>): Insight[] {
+/**
+ * Severity first, then the size of the change: the second part stays below 1, so on its own it
+ * only orders insights of the same severity.
+ */
+function score({ severity, delta }: Finding): number {
+  const size = Math.abs(delta.value);
+  return SEVERITY_SCORE[severity] + size / (size + 100);
+}
+
+/**
+ * The hotel's insights, most important first, at most five. With a role, each score is
+ * multiplied by how much that role cares about the insight's category before sorting.
+ */
+export function getInsights({ hotelId, role }: z.infer<typeof insightsInput>): Insight[] {
   const hotel = getHotels().find((candidate) => candidate.id === hotelId);
   if (!hotel) throw new Error(`Unknown hotel: ${hotelId}`);
 
+  const weighted = (finding: Finding): number =>
+    score(finding) * categoryWeight(role, finding.category);
   const findings = detectors
     .flatMap((detect) => detect(hotel) ?? [])
-    .sort(
-      (a, b) =>
-        SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) ||
-        Math.abs(b.delta.value) - Math.abs(a.delta.value),
-    );
+    .sort((a, b) => weighted(b) - weighted(a));
 
   // A finding about a metric that a more important cause already names tells the same story
   // twice: keep it, but as background at the end.

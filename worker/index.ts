@@ -2,6 +2,10 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
 import { tools } from '../shared/tools';
+import { authenticate } from '../shared/users';
+
+/** Long enough for the sign-in form's loading state to be seen. */
+const LOGIN_LATENCY_MS = 400;
 
 // The handler is stateless: it calls this factory to build a fresh server per request.
 function createServer(): McpServer {
@@ -25,6 +29,18 @@ export default {
 
     if (request.method === 'GET' && url.pathname === '/api/health') {
       return Response.json({ ok: true });
+    }
+
+    // Mock sign-in: a known email with any non-empty password. Not a tool, and not security.
+    if (request.method === 'POST' && url.pathname === '/api/login') {
+      const credentials: { email?: unknown; password?: unknown } | null = await request
+        .json<{ email?: unknown; password?: unknown }>()
+        .catch(() => null);
+      await new Promise((resolve) => setTimeout(resolve, LOGIN_LATENCY_MS));
+      const user = authenticate(credentials?.email, credentials?.password);
+      return user
+        ? Response.json({ user })
+        : Response.json({ error: 'unknown_email' }, { status: 401 });
     }
 
     // Every tool is also a GET route; its schema validates the query parameters.

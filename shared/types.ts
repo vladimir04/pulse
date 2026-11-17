@@ -5,8 +5,10 @@
 
 import type { MetricKey } from './metrics';
 
+export type HotelId = 'hotel-central' | 'marina-resort';
+
 export interface Hotel {
-  id: string;
+  id: HotelId;
   name: string;
   city: string;
   type: 'city' | 'resort';

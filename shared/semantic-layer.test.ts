@@ -10,6 +10,7 @@ import {
   sameTimeLastYear,
   type Totals,
 } from './metrics';
+import type { HotelId } from './types';
 
 describe('metrics', () => {
   // One day: 80 of 100 rooms sold at 100, a restaurant taking 2,000.
@@ -46,7 +47,7 @@ describe('metrics', () => {
 });
 
 describe('planted stories', () => {
-  const insight = (hotelId: string, rule: string) =>
+  const insight = (hotelId: HotelId, rule: string) =>
     getInsights({ hotelId }).find((candidate) => candidate.id === `${hotelId}:${rule}`);
 
   it('finds the three Hotel Central stories', () => {

@@ -22,7 +22,7 @@ export interface UserProfile {
 export const users: UserProfile[] = [
   {
     id: 'mark',
-    email: 'mark@example.com',
+    email: 'mark@pulse.com',
     firstName: 'Mark',
     lastName: 'Devos',
     role: 'general_manager',
@@ -32,7 +32,7 @@ export const users: UserProfile[] = [
   },
   {
     id: 'sofia',
-    email: 'sofia@example.com',
+    email: 'sofia@pulse.com',
     firstName: 'Sofia',
     lastName: 'Marques',
     role: 'revenue_director',
@@ -42,8 +42,8 @@ export const users: UserProfile[] = [
   },
   {
     id: 'tomas',
-    email: 'tomas@example.com',
-    firstName: 'Tomás',
+    email: 'tomas@pulse.com',
+    firstName: 'Tomas',
     lastName: 'Ferreira',
     role: 'fnb_manager',
     roleLabel: 'F&B Manager',

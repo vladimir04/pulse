@@ -48,9 +48,9 @@ tool answers without it. Do not put real data behind it.
 
 | Email               | User           | Role             | Default hotel         |
 | ------------------- | -------------- | ---------------- | --------------------- |
-| `mark@example.com`  | Mark Devos     | General Manager  | Hotel Central         |
-| `sofia@example.com` | Sofia Marques  | Revenue Director | Marina Resort Algarve |
-| `tomas@example.com` | Tomás Ferreira | F&B Manager      | Marina Resort Algarve |
+| `mark@pulse.com`  | Mark Devos     | General Manager  | Hotel Central         |
+| `sofia@pulse.com` | Sofia Marques  | Revenue Director | Marina Resort Algarve |
+| `tomas@pulse.com` | Tomas Ferreira | F&B Manager      | Marina Resort Algarve |
 
 The role only changes the order of insights: `get_insights` and `/api/insights` take an optional
 `role`, which moves the categories that role cares about up the ranking. The app's routes are

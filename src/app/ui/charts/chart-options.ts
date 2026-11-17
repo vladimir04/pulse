@@ -27,7 +27,7 @@ export function chartOptions(spec: ChartSpec, compact: boolean): EChartsCoreOpti
 
   // A full-size chart over days names a few of them: the first, each first of a month and the
   // last, with their weekday ("Thu 1 Oct"). A period inside one month also names its middle.
-  const daily = !compact && !bars && spec.x.every((label) => /^d{4}-d{2}-d{2}$/.test(label));
+  const daily = !compact && !bars && spec.x.every((label) => /^\d{4}-\d{2}-\d{2}$/.test(label));
   const named = new Set([0, lastIndex]);
   spec.x.forEach((label, index) => {
     if (label.endsWith('-01')) named.add(index);

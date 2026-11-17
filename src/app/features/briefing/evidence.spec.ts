@@ -7,7 +7,7 @@ describe('evidenceGroups', () => {
   const rows = (result: unknown) =>
     evidenceGroups([{ query: 'get_anything', args: {}, rows: result }])[0].rows;
 
-  it('names each query with its arguments, in the order they ran', () => {
+  it('heads each query with what it looked at and for when, in the order they ran', () => {
     const groups = evidenceGroups([
       {
         query: 'get_kpis',
@@ -17,10 +17,7 @@ describe('evidenceGroups', () => {
       { query: 'get_events', args: { hotelId: 'hotel-central' }, rows: [] },
     ]);
 
-    expect(groups.map((group) => group.query)).toEqual([
-      'get_kpis(hotelId: hotel-central, from: 2026-10-01, to: 2026-10-31)',
-      'get_events(hotelId: hotel-central)',
-    ]);
+    expect(groups.map((group) => group.heading)).toEqual(['Key figures · October 2026', 'Events']);
   });
 
   it('writes a figure with last year and the change', () => {

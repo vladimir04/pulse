@@ -111,7 +111,11 @@
           }
           <h2 class="flex-1 min-w-0 text-insight font-normal">{{ data.headline }}</h2>
           @if (data.context; as context) {
-            <span class="text-table text-secondary">{{ context }}</span>
+            <span class="flex flex-col items-end text-table text-secondary">
+              @for (line of context; track line) {
+                <span>{{ line }}</span>
+              }
+            </span>
           }
         </div>
       </div>
@@ -135,7 +139,7 @@
                   <tbody>
                     <tr class="h-8 border-t border-line text-secondary">
                       <th scope="rowgroup" colspan="4" class="text-left font-normal">
-                        {{ group.query }}
+                        {{ group.heading }}
                       </th>
                     </tr>
                     @for (row of group.rows; track $index) {

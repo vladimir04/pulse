@@ -1,10 +1,10 @@
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Component, computed, DOCUMENT, effect, inject } from '@angular/core';
 import { LucideChevronRight, LucideX } from '@lucide/angular';
-import type { AnswerCard } from '@shared/types';
 import { InlineError } from '../../../ui/inline-error';
 import { InsightCard, type InsightCardData } from '../../../ui/insight-card/insight-card';
 import { Skeleton } from '../../../ui/skeleton';
+import { evidenceTitle } from '../../../util/evidence';
 import { formatRange } from '../../../util/format';
 import { type Answered, AskService } from '../../ask/ask.service';
 import { HotelContextService } from '../../context/hotel-context.service';
@@ -17,28 +17,7 @@ const SUGGESTIONS = [
   'Why is October’s profit down?',
 ];
 
-const DAY_MS = 86_400_000;
-const isDate = (value: unknown): value is string =>
-  typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
-
-/**
- * A tool call as one line of evidence: tool, hotel, what was measured, period. A period that
- * ends today reads as people say it, "last 90 days".
- */
-function evidenceLine({ name, input }: AnswerCard['evidence'][number], asOf?: string): string {
-  const [from, to] = [input['from'] ?? input['stayFrom'], input['to'] ?? input['stayTo']];
-  let period: string | undefined;
-  if (isDate(from) && isDate(to)) {
-    const days = Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS) + 1;
-    period =
-      to === asOf && (days === 30 || days === 90) ? `last ${days} days` : formatRange({ from, to });
-  }
-  return [name, input['hotelId'], input['metric'], period]
-    .filter((part) => typeof part === 'string' && part !== '')
-    .join(' · ');
-}
-
-/** An answer as the insight card shows it. */
+/** An answer as the insight card shows it: each tool call reads as what it looked at and for when. */
 function toCard(answer: Answered, asOf?: string): InsightCardData {
   const calls = answer.evidence.length;
   return {
@@ -50,7 +29,7 @@ function toCard(answer: Answered, asOf?: string): InsightCardData {
     followUps: answer.followUps,
     evidence: {
       summary: `${calls} ${calls === 1 ? 'tool call' : 'tool calls'}`,
-      lines: answer.evidence.map((call) => evidenceLine(call, asOf)),
+      lines: answer.evidence.map((call) => evidenceTitle(call.name, call.input, asOf)),
     },
   };
 }

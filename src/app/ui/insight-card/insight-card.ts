@@ -17,9 +17,9 @@ export interface EvidenceRow {
   change?: { text: string; tone: 'better' | 'worse' | 'flat' };
 }
 
-/** The rows one query returned, under the query as it was asked. */
+/** The rows one query returned, under a heading that says what it looked at and for when. */
 export interface EvidenceGroup {
-  query: string;
+  heading: string;
   rows: EvidenceRow[];
 }
 
@@ -31,8 +31,8 @@ export interface InsightCardData {
   severity?: Insight['severity'];
   /** The change the finding is about, in the severity's colour */
   delta?: { value: number; unit: DeltaUnit };
-  /** What the finding is about and the period it covers, for example "Profit · October 2026" */
-  context?: string;
+  /** What the finding is about and the period it covers, one under the other: Profit, October 2026 */
+  context?: string[];
   confidence?: AnswerCard['confidence'];
   chart?: ChartSpec;
   /** The dated causes, shown as chips after the cause */

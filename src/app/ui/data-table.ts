@@ -44,12 +44,12 @@ export interface DataTableSort<Row> {
               <button
                 type="button"
                 class="flex items-center gap-1 rounded-[2px] font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
-                [class]="[
-                  column.numeric ? 'ml-auto' : '',
-                  sorted
+                [class]="
+                  (column.numeric ? 'ml-auto ' : '') +
+                  (sorted
                     ? 'text-ink'
-                    : 'group transition-colors duration-150 ease-out hover:text-ink',
-                ]"
+                    : 'group transition-colors duration-150 ease-out hover:text-ink')
+                "
                 (click)="sortBy(column)"
               >
                 @if (!column.numeric) {
@@ -97,10 +97,10 @@ export interface DataTableSort<Row> {
               } @else {
                 <td
                   class="px-4"
-                  [class]="[
-                    column.numeric ? 'text-right tabular' : '',
-                    column.strong?.(row) ? 'font-medium' : '',
-                  ]"
+                  [class]="
+                    (column.numeric ? 'text-right tabular ' : '') +
+                    (column.strong?.(row) ? 'font-medium' : '')
+                  "
                 >
                   {{ cell(row, column) }}
                 </td>

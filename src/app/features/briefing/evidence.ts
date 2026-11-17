@@ -1,10 +1,11 @@
 /*
- * Turns the queries an insight ran into rows a person can read: what was asked, then one row
- * per figure with last year and the change where the query compared them.
+ * Turns the queries an insight ran into rows a person can read: what was looked at and for
+ * when, then one row per figure with last year and the change where the query compared them.
  */
 import { glossary } from '@shared/glossary';
 import type { Insight, MetricValue } from '@shared/types';
 import type { EvidenceGroup, EvidenceRow } from '../../ui/insight-card/insight-card';
+import { evidenceTitle } from '../../util/evidence';
 import {
   formatCount,
   formatCurrency,
@@ -143,12 +144,13 @@ function rowsOf(result: unknown): EvidenceRow[] {
   return metricRows(result);
 }
 
-/** One group per query the insight ran, in the order it ran them. */
-export function evidenceGroups(evidence: Insight['evidence']): EvidenceGroup[] {
+/**
+ * One group per query the insight ran, in the order it ran them. `asOf` is the dataset's
+ * "today", so a period that ends on it can read as "last 90 days".
+ */
+export function evidenceGroups(evidence: Insight['evidence'], asOf?: string): EvidenceGroup[] {
   return evidence.map(({ query, args, rows }) => ({
-    query: `${query}(${Object.entries(isRecord(args) ? args : {})
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ')})`,
+    heading: evidenceTitle(query, args, asOf),
     rows: rowsOf(rows),
   }));
 }

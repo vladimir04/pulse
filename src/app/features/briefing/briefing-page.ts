@@ -27,8 +27,8 @@ const CATEGORIES: Record<Insight['category'], string> = {
 };
 
 /** A finding as the insight card shows it. */
-function toCard(insight: Insight): InsightCardData {
-  const groups = evidenceGroups(insight.evidence);
+function toCard(insight: Insight, asOf?: string): InsightCardData {
+  const groups = evidenceGroups(insight.evidence, asOf);
   const items = groups.reduce((count, group) => count + group.rows.length, 0);
   const period = insight.period.label;
   return {
@@ -37,8 +37,8 @@ function toCard(insight: Insight): InsightCardData {
     nextMove: insight.nextMove,
     severity: insight.severity,
     delta: insight.delta,
-    // What the finding is about and the period it covers: "Profit · October 2026".
-    context: `${CATEGORIES[insight.category]} · ${period.charAt(0).toUpperCase()}${period.slice(1)}`,
+    // What the finding is about, and under it the period it covers.
+    context: [CATEGORIES[insight.category], `${period.charAt(0).toUpperCase()}${period.slice(1)}`],
     chart: insight.chart,
     events: insight.causeEvents,
     evidence: { summary: `${items} items`, groups },
@@ -116,7 +116,7 @@ export class BriefingPage implements OnDestroy {
     const asOf = this.context.asOf();
     return this.ranked().map((insight) => ({
       insight,
-      card: toCard(insight),
+      card: toCard(insight, asOf),
       explorable: asOf !== undefined && insight.period.from <= asOf,
     }));
   });

@@ -10,7 +10,7 @@ const finding: InsightCardData = {
   nextMove: 'Revisit the rate increase.',
   severity: 'critical',
   delta: { value: -13.7, unit: 'percent' },
-  context: 'Profit · October 2026',
+  context: ['Profit', 'October 2026'],
   chart: {
     type: 'bar',
     title: 'Revenue and profit',
@@ -35,7 +35,7 @@ const finding: InsightCardData = {
     summary: '2 items',
     groups: [
       {
-        query: 'get_kpis(hotelId: hotel-central, from: 2026-10-01, to: 2026-10-31)',
+        heading: 'Key figures · October 2026',
         rows: [
           {
             label: 'Occupancy',
@@ -87,7 +87,10 @@ describe('InsightCard', () => {
     expect(text(card().querySelector('app-severity-badge'))).toBe('Critical');
     expect(text(card().querySelector('h2'))).toBe(finding.headline);
     expect(text(card())).toContain('−13.7%');
-    expect(text(card())).toContain('Profit · October 2026');
+    expect([...card().querySelectorAll('h2 + span > span')].map(text)).toEqual([
+      'Profit',
+      'October 2026',
+    ]);
   });
 
   it('gives the cause with the events behind it, and the next move', async () => {
@@ -107,9 +110,7 @@ describe('InsightCard', () => {
     const evidence = card().querySelector('details')!;
     expect(evidence.open).toBe(false);
     expect(text(evidence.querySelector('summary'))).toBe('2 items');
-    expect(text(evidence.querySelector('th[scope=rowgroup]'))).toBe(
-      'get_kpis(hotelId: hotel-central, from: 2026-10-01, to: 2026-10-31)',
-    );
+    expect(text(evidence.querySelector('th[scope=rowgroup]'))).toBe('Key figures · October 2026');
     expect([...evidence.querySelectorAll('th[scope=row]')].map(text)).toEqual([
       'Occupancy',
       'Rooms sold',

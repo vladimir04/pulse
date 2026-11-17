@@ -26,12 +26,11 @@ const earnsMost = (row: ChannelRow): boolean => row.grossRevenueRank === 1;
 
 const COLUMNS: DataTableColumn<ChannelRow>[] = [
   { key: 'name', label: 'Channel' },
-  { key: 'roomsSold', label: 'Rooms', numeric: true, width: 'w-[120px]', format: count },
+  { key: 'roomsSold', label: 'Rooms', numeric: true, format: count },
   {
     key: 'grossRevenue',
     label: 'Gross revenue',
     numeric: true,
-    width: 'w-[136px]',
     format: money,
     strong: earnsMost,
   },
@@ -39,15 +38,13 @@ const COLUMNS: DataTableColumn<ChannelRow>[] = [
     key: 'distributionCost',
     label: 'Commission',
     numeric: true,
-    width: 'w-[128px]',
     format: money,
   },
-  { key: 'netRevenue', label: 'Net revenue', numeric: true, width: 'w-[128px]', format: money },
+  { key: 'netRevenue', label: 'Net revenue', numeric: true, format: money },
   {
     key: 'netRate',
     label: 'Net rate',
     numeric: true,
-    width: 'w-[120px]',
     format: money,
     strong: earnsMost,
   },

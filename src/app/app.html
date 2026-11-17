@@ -9,15 +9,21 @@
       <dl class="mt-6 grid grid-cols-3 gap-4">
         <div class="rounded border border-gray-200 p-4">
           <dt class="text-sm text-gray-500">Occupancy</dt>
-          <dd class="text-2xl font-semibold">{{ kpis.value().occupancy | percent: '1.1-1' }}</dd>
+          <dd class="text-2xl font-semibold">
+            {{ kpis.value().occupancy.value | number: '1.1-1' }}%
+          </dd>
         </div>
         <div class="rounded border border-gray-200 p-4">
           <dt class="text-sm text-gray-500">ADR</dt>
-          <dd class="text-2xl font-semibold">{{ kpis.value().adr | number: '1.2-2' }}</dd>
+          <dd class="text-2xl font-semibold">
+            {{ kpis.value().averageDailyRate.value | number: '1.2-2' }}
+          </dd>
         </div>
         <div class="rounded border border-gray-200 p-4">
           <dt class="text-sm text-gray-500">RevPAR</dt>
-          <dd class="text-2xl font-semibold">{{ kpis.value().revpar | number: '1.2-2' }}</dd>
+          <dd class="text-2xl font-semibold">
+            {{ kpis.value().revenuePerAvailableRoom.value | number: '1.2-2' }}
+          </dd>
         </div>
       </dl>
     } @else if (kpis.error()) {
@@ -26,7 +32,7 @@
       <p class="mt-6 text-gray-500">Loading KPIs…</p>
     }
 
-    <h2 class="mt-8 text-sm text-gray-500">Rooms sold per day</h2>
+    <h2 class="mt-8 text-sm text-gray-500">Occupancy per day</h2>
     <div echarts [options]="chartOptions()" class="h-72"></div>
   } @else {
     <p class="text-gray-500">Loading data…</p>

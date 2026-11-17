@@ -7,7 +7,16 @@
  */
 import { statSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { adr, occupancy, revpar } from '../shared/metrics';
+import {
+  averageDailyRate,
+  directShare,
+  distributionCost,
+  netRevenuePerAvailableRoom,
+  occupancy,
+  operatingProfit,
+  sameTimeLastYear,
+  type Totals,
+} from '../shared/metrics';
 import type {
   BookingChannel,
   Dataset,
@@ -244,16 +253,16 @@ const GENIUS_RATE = 0.85;
  */
 const OCTOBER_2026: Period = ['2026-10-01', '2026-10-31'];
 const OCTOBER_RATE_INCREASE = 1.15;
-const OCTOBER_DEMAND_DROP = 0.105;
+const OCTOBER_DEMAND_DROP = 0.113;
 const OCTOBER_SHARES: PerChannel = {
-  direct: 0.26,
-  'booking-com': 0.278,
-  expedia: 0.111,
-  corporate: 0.258,
-  'travel-agents': 0.093,
+  direct: 0.262,
+  'booking-com': 0.28,
+  expedia: 0.112,
+  corporate: 0.254,
+  'travel-agents': 0.092,
 };
 const AGENCY_COVER: Period = ['2026-10-06', '2026-10-24'];
-const AGENCY_COVER_COST = 1.4;
+const AGENCY_COVER_COST = 1.65;
 const ROOMS_OUT_OF_SERVICE: Period = ['2026-10-08', '2026-10-17'];
 const ROOMS_OUT_OF_SERVICE_COUNT = 6;
 
@@ -266,6 +275,14 @@ const BOOK_DIRECT_SHARES: PerChannel = {
   expedia: 0.15,
   corporate: 0.03,
   'travel-agents': 0.22,
+};
+/** Some of those guests keep booking direct after the offer ends, at the expense of the agents. */
+const AFTER_BOOK_DIRECT_SHARES: PerChannel = {
+  direct: 0.25,
+  'booking-com': 0.35,
+  expedia: 0.14,
+  corporate: 0.03,
+  'travel-agents': 0.23,
 };
 
 const events: Event[] = [
@@ -361,15 +378,16 @@ function channelShares(profile: Profile, date: string): PerChannel {
   const { id } = profile.hotel;
   if (id === CENTRAL && within(date, OCTOBER_2026)) return OCTOBER_SHARES;
   if (id === MARINA && within(date, BOOK_DIRECT)) return BOOK_DIRECT_SHARES;
+  const usual = id === MARINA && date > BOOK_DIRECT[1] ? AFTER_BOOK_DIRECT_SHARES : profile.shares;
   if (id === MARINA && within(date, GENIUS)) {
     // Booking.com grows to 45%; the other channels shrink in proportion.
-    const others = (1 - GENIUS_SHARE) / (1 - profile.shares['booking-com']);
-    const shares = { ...profile.shares };
+    const others = (1 - GENIUS_SHARE) / (1 - usual['booking-com']);
+    const shares = { ...usual };
     for (const channel of CHANNEL_IDS) shares[channel] *= others;
     shares['booking-com'] = GENIUS_SHARE;
     return shares;
   }
-  return profile.shares;
+  return usual;
 }
 
 function captureRate(hotel: Hotel, date: string, weekday: number): number {
@@ -710,47 +728,61 @@ function summarise(data: Dataset, hotelId: string, period: Period) {
   const restaurant = inPeriod(data.restaurantDays);
   const staffing = inPeriod(data.staffingDays);
 
-  const roomsAvailable = sum(rooms, (row) => row.roomsAvailable);
-  const roomsSold = sum(rooms, (row) => row.roomsSold);
-  const roomRevenue = sum(rooms, (row) => row.roomRevenue);
-  const distributionCost = sum(channels, (row) => {
-    const { commissionPercent, costPerBooking } = channel.get(row.channelId)!;
-    return (row.roomRevenue * commissionPercent) / 100 + row.bookings * costPerBooking;
-  });
-  const operatingProfit =
-    roomRevenue +
-    sum(restaurant, (row) => row.revenue - row.ingredientCost) -
-    distributionCost -
-    sum(staffing, (row) => row.cost) -
-    rooms.length * hotel.otherOperatingCostsPerDay;
+  const staffingCost = (department: StaffingDay['department']): number =>
+    sum(
+      staffing.filter((row) => row.department === department),
+      (row) => row.cost,
+    );
+
+  // The same base measures and formulas the app uses, so this table and the app agree.
+  const totals: Totals = {
+    days: rooms.length,
+    roomsAvailable: sum(rooms, (row) => row.roomsAvailable),
+    roomsSold: sum(rooms, (row) => row.roomsSold),
+    directRoomsSold: sum(
+      channels.filter((row) => channel.get(row.channelId)!.kind === 'direct'),
+      (row) => row.roomsSold,
+    ),
+    roomRevenue: sum(rooms, (row) => row.roomRevenue),
+    guestsInHouse: sum(rooms, (row) => row.guestsInHouse),
+    distributionCost: distributionCost(
+      channels.map((row) => ({ ...channel.get(row.channelId)!, ...row })),
+    ),
+    covers: sum(restaurant, (row) => row.covers),
+    restaurantRevenue: sum(restaurant, (row) => row.revenue),
+    ingredientCost: sum(restaurant, (row) => row.ingredientCost),
+    roomsStaffingCost: staffingCost('rooms'),
+    restaurantStaffingCost: staffingCost('restaurant'),
+    frontDeskStaffingCost: staffingCost('front_desk'),
+    otherOperatingCosts: rooms.length * hotel.otherOperatingCostsPerDay,
+  };
 
   return {
     channels,
-    occupancy: occupancy(roomsSold, roomsAvailable),
-    adr: adr(roomRevenue, roomsSold),
-    roomRevenue,
-    roomsStaffing: sum(
-      staffing.filter((row) => row.department === 'rooms'),
-      (row) => row.cost,
-    ),
-    distributionCost,
-    netRevpar: revpar(roomRevenue - distributionCost, roomsAvailable),
-    directShare:
-      sum(
-        channels.filter((row) => row.channelId === 'direct'),
-        (row) => row.roomsSold,
-      ) / roomsSold,
-    operatingProfit,
+    occupancy: occupancy(totals),
+    adr: averageDailyRate(totals),
+    roomRevenue: totals.roomRevenue,
+    roomsStaffing: totals.roomsStaffingCost,
+    distributionCost: totals.distributionCost,
+    netRevpar: netRevenuePerAvailableRoom(totals),
+    directShare: directShare(totals),
+    operatingProfit: operatingProfit(totals),
   };
+}
+
+/** The same weekdays a year earlier, as the app compares periods. */
+function lastYear([from, to]: Period): Period {
+  const before = sameTimeLastYear({ from, to });
+  return [before.from, before.to];
 }
 
 function printVerification(data: Dataset, fileBytes: number): void {
   // Story 4
   const october = summarise(data, CENTRAL, OCTOBER_2026);
-  const octoberBefore = summarise(data, CENTRAL, ['2025-10-01', '2025-10-31']);
+  const octoberBefore = summarise(data, CENTRAL, lastYear(OCTOBER_2026));
   printTable(
-    'Hotel Central — October 2026 vs October 2025',
-    ['', 'Oct 2025', 'Oct 2026', 'Change'],
+    `Hotel Central — October 2026 vs the same weekdays last year (${lastYear(OCTOBER_2026).join(' to ')})`,
+    ['', 'Last year', 'Oct 2026', 'Change'],
     [
       [
         'Occupancy',
@@ -877,10 +909,10 @@ function printVerification(data: Dataset, fileBytes: number): void {
 
   // Story 5
   const season = summarise(data, MARINA, BOOK_DIRECT);
-  const seasonBefore = summarise(data, MARINA, ['2025-05-01', '2025-08-31']);
+  const seasonBefore = summarise(data, MARINA, lastYear(BOOK_DIRECT));
   printTable(
-    'Marina Resort — May–August 2026 vs May–August 2025',
-    ['', '2025', '2026', 'Change'],
+    `Marina Resort — May–August 2026 vs the same weekdays last year (${lastYear(BOOK_DIRECT).join(' to ')})`,
+    ['', 'Last year', '2026', 'Change'],
     [
       [
         'Direct share of rooms sold',

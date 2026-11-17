@@ -7,6 +7,7 @@
     "build": "ng build",
     "deploy": "ng build && wrangler deploy",
     "generate": "tsx scripts/generate.ts",
+    "test": "vitest run",
     "typecheck": "wrangler types && ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json"
   },
   "private": true,
@@ -37,6 +38,7 @@
     "tailwindcss": "^4.3.5",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2",
+    "vitest": "^5.1.0",
     "wrangler": "^4.163.0"
   }
 }

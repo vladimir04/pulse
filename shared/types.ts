@@ -3,6 +3,8 @@
  * currency; counts are integers. `data/data.json` is written by `scripts/generate.ts`.
  */
 
+import type { MetricKey } from './metrics';
+
 export interface Hotel {
   id: string;
   name: string;
@@ -97,21 +99,170 @@ export interface Dataset {
   events: Event[];
 }
 
-/** Inclusive date range, YYYY-MM-DD. An omitted bound is open. */
-export interface DateRange {
-  from?: string;
-  to?: string;
+// ---------------------------------------------------------------------------------------------
+// Query results. Numbers are ready to show: percent values are on a 0–100 scale with one
+// decimal, money has two decimals, counts are whole numbers.
+// ---------------------------------------------------------------------------------------------
+
+/** A span of days, both ends included. */
+export interface Period {
+  from: string;
+  to: string;
 }
 
-export interface HotelDateRange extends DateRange {
-  hotelId: string;
+export type MetricUnit = 'percent' | 'currency' | 'count' | 'ratio';
+
+/** Percent metrics change in points; everything else changes in percent. */
+export type DeltaUnit = 'points' | 'percent';
+
+export interface Comparison {
+  value: number;
+  /** Current value against this one, in `deltaUnit` */
+  delta: number;
+  deltaUnit: DeltaUnit;
+}
+
+export interface MetricValue {
+  value: number;
+  unit: MetricUnit;
+  /** The same weekdays 364 days earlier; null when the data does not go back that far. */
+  lastYear: Comparison | null;
 }
 
 export interface Kpis {
-  /** Rooms sold / rooms available, as a fraction (0–1) */
-  occupancy: number;
-  /** Average daily rate: room revenue / rooms sold */
-  adr: number;
-  /** Revenue per available room: room revenue / rooms available */
-  revpar: number;
+  hotelId: string;
+  period: Period;
+  lastYearPeriod: Period;
+  roomsAvailable: MetricValue;
+  roomsSold: MetricValue;
+  occupancy: MetricValue;
+  averageDailyRate: MetricValue;
+  revenuePerAvailableRoom: MetricValue;
+  netRevenuePerAvailableRoom: MetricValue;
+  operatingProfit: MetricValue;
+}
+
+export type Grain = 'day' | 'week' | 'month';
+
+export interface Timeseries {
+  metric: MetricKey;
+  unit: MetricUnit;
+  grain: Grain;
+  /** Bucket labels: the date, the Monday that starts the week, or YYYY-MM */
+  x: string[];
+  current: number[];
+  /** The same days 364 days earlier, per bucket; null where the data does not go back that far. */
+  lastYear: (number | null)[];
+}
+
+export interface ChannelPerformance {
+  channelId: string;
+  name: string;
+  kind: BookingChannel['kind'];
+  roomsSold: number;
+  bookings: number;
+  shareOfRooms: number;
+  grossRevenue: number;
+  distributionCost: number;
+  netRevenue: number;
+  /** Gross revenue per room night */
+  grossRate: number;
+  /** Net revenue per room night */
+  netRate: number;
+  grossRevenueRank: number;
+  netRateRank: number;
+}
+
+export interface BookingPace {
+  hotelId: string;
+  stayFrom: string;
+  stayTo: string;
+  asOf: string;
+  roomsBookedNow: number;
+  roomsBookedSameTimeLastYear: number;
+  paceRatio: number;
+  pickup7: number;
+  pickup14: number;
+  pickup28: number;
+  lastYearPickup14: number;
+  /** Rooms still unsold across the stay dates */
+  roomsRemaining: number;
+  byWeek: {
+    weekStart: string;
+    roomsBookedNow: number;
+    roomsBookedSameTimeLastYear: number;
+    paceRatio: number;
+  }[];
+}
+
+export interface RestaurantPerformance {
+  hotelId: string;
+  restaurantName: string;
+  period: Period;
+  lastYearPeriod: Period;
+  covers: MetricValue;
+  revenue: MetricValue;
+  ingredientCost: MetricValue;
+  staffingCost: MetricValue;
+  captureRate: MetricValue;
+  revenuePerCover: MetricValue;
+  margin: MetricValue;
+  split: Record<
+    'monToThu' | 'friToSun',
+    { covers: MetricValue; captureRate: MetricValue; revenuePerCover: MetricValue }
+  >;
+}
+
+export interface StaffingPerformance {
+  hotelId: string;
+  period: Period;
+  lastYearPeriod: Period;
+  byDepartment: Record<
+    StaffingDay['department'],
+    { cost: MetricValue; costPerOccupiedRoom: MetricValue }
+  >;
+  staffingCost: MetricValue;
+  staffingCostPerOccupiedRoom: MetricValue;
+  staffingCostPercent: MetricValue;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Insights
+// ---------------------------------------------------------------------------------------------
+
+export interface ChartSpec {
+  type: 'line' | 'bar';
+  title: string;
+  unit: MetricUnit;
+  x: string[];
+  series: {
+    name: string;
+    data: (number | null)[];
+    /** `entity` series stand for one thing each (a channel), named by `entityId` */
+    role: 'current' | 'lastYear' | 'entity';
+    entityId?: string;
+  }[];
+  markers?: { x: string; label: string }[];
+}
+
+export interface Insight {
+  id: string;
+  hotelId: string;
+  severity: 'critical' | 'warning' | 'positive' | 'info';
+  category: 'profit' | 'bookings' | 'restaurant' | 'channels' | 'staffing';
+  /** One sentence with the number, in plain English */
+  headline: string;
+  /** Glossary key of the metric the insight is about */
+  metric: MetricKey;
+  period: Period & { label: string };
+  delta: { value: number; unit: DeltaUnit };
+  chart: ChartSpec;
+  cause: string;
+  causeEvents: Event[];
+  /** One imperative sentence */
+  nextMove: string;
+  /** The queries the insight ran, by tool name, with their arguments and results */
+  evidence: { query: string; args: unknown; rows: unknown }[];
+  /** 1 is the most important insight for the hotel */
+  rank: number;
 }

@@ -4,9 +4,9 @@ import { authenticate, greeting, type Role } from './users';
 
 describe('mock users', () => {
   it('accepts a known email with any non-empty password', () => {
-    expect(authenticate('Mark@Example.com', 'anything')?.firstName).toBe('Mark');
-    expect(authenticate('mark@example.com', '')).toBeUndefined();
-    expect(authenticate('nobody@example.com', 'anything')).toBeUndefined();
+    expect(authenticate('Mark@Pulse.com', 'anything')?.firstName).toBe('Mark');
+    expect(authenticate('mark@pulse.com', '')).toBeUndefined();
+    expect(authenticate('nobody@pulse.com', 'anything')).toBeUndefined();
   });
 
   it('greets by the time of day', () => {

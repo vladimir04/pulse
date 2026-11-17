@@ -1,34 +1,29 @@
 import { DecimalPipe } from '@angular/common';
-import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, resource } from '@angular/core';
-import { addDays } from '@shared/metrics';
-import type { Kpis } from '@shared/types';
 import type { EChartsCoreOption } from 'echarts/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
-import { HotelSelection } from './hotel-selection';
+import { ApiService } from '../../core/api/api.service';
+import { HotelContextService } from '../../core/context/hotel-context.service';
+import { chartColors } from '../../ui/charts/chart-theme';
 
-const SERIES_COLOR = '#2a78d6';
-const AXIS_LABEL_COLOR = '#898781';
-const DAYS_SHOWN = 14;
-
-/** Placeholder explore page: the selected hotel's most recent days. */
+/** Placeholder explore page: the selected hotel over the selected period. */
 @Component({
   imports: [DecimalPipe, NgxEchartsDirective],
-  selector: 'app-explore',
-  templateUrl: './explore.html',
+  selector: 'app-explore-page',
+  templateUrl: './explore-page.html',
 })
-export class Explore {
-  private readonly hotels = inject(HotelSelection);
+export class ExplorePage {
+  private readonly context = inject(HotelContextService);
   // The query module carries the whole dataset, so it loads as its own chunk after first paint.
   private readonly queries = resource({ loader: () => import('@shared/queries') });
 
   protected readonly view = computed(() => {
     const queries = this.queries.value();
-    const hotelId = this.hotels.selectedId();
+    const hotelId = this.context.hotelId();
+    const period = this.context.period();
     const hotel = queries?.getHotels().find((candidate) => candidate.id === hotelId);
-    if (!queries || !hotel) return undefined;
-    const to = queries.getAsOf();
-    const from = addDays(to, 1 - DAYS_SHOWN);
+    if (!queries || !hotel || !period) return undefined;
+    const { from, to } = period;
     const occupancy = queries.getTimeseries({
       hotelId,
       metric: 'occupancy',
@@ -39,18 +34,14 @@ export class Explore {
     return { hotel, from, to, occupancy };
   });
 
-  protected readonly kpis = httpResource<Kpis>(() => {
+  protected readonly kpis = inject(ApiService).kpis(() => {
     const view = this.view();
-    return (
-      view && {
-        url: '/api/kpis',
-        params: { hotelId: view.hotel.id, from: view.from, to: view.to },
-      }
-    );
+    return view && { hotelId: view.hotel.id, from: view.from, to: view.to };
   });
 
   protected readonly chartOptions = computed<EChartsCoreOption>(() => {
     const occupancy = this.view()?.occupancy;
+    const colors = chartColors();
     return {
       grid: { left: 40, right: 16, top: 16, bottom: 28 },
       tooltip: { trigger: 'axis' },
@@ -59,14 +50,14 @@ export class Explore {
         boundaryGap: false,
         data: occupancy?.x.map((date) => date.slice(5)) ?? [],
         axisTick: { show: false },
-        axisLine: { lineStyle: { color: '#c3c2b7' } },
-        axisLabel: { color: AXIS_LABEL_COLOR },
+        axisLine: { lineStyle: { color: colors.axisLine } },
+        axisLabel: { color: colors.axisLabel },
       },
       yAxis: {
         type: 'value',
         max: 100,
-        splitLine: { lineStyle: { color: '#e1e0d9' } },
-        axisLabel: { color: AXIS_LABEL_COLOR, formatter: '{value}%' },
+        splitLine: { lineStyle: { color: colors.gridLine } },
+        axisLabel: { color: colors.axisLabel, formatter: '{value}%' },
       },
       series: [
         {
@@ -74,8 +65,8 @@ export class Explore {
           type: 'line',
           data: occupancy?.current ?? [],
           symbolSize: 8,
-          lineStyle: { width: 2, color: SERIES_COLOR },
-          itemStyle: { color: SERIES_COLOR },
+          lineStyle: { width: 2, color: colors.current },
+          itemStyle: { color: colors.current },
         },
       ],
     };

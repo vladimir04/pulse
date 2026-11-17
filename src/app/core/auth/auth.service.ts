@@ -1,9 +1,8 @@
-import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { UserProfile } from '@shared/users';
-import { firstValueFrom } from 'rxjs';
-import { HotelSelection } from './hotel-selection';
+import { ApiService } from '../api/api.service';
+import { HotelContextService } from '../context/hotel-context.service';
 
 const STORAGE_KEY = 'pulse.user';
 
@@ -22,9 +21,9 @@ function restore(): UserProfile | null {
 /** Mock sign-in: it personalises the app and protects nothing. */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http = inject(HttpClient);
+  private readonly api = inject(ApiService);
   private readonly router = inject(Router);
-  private readonly hotels = inject(HotelSelection);
+  private readonly context = inject(HotelContextService);
   private readonly current = signal<UserProfile | null>(restore());
 
   /** The signed-in user, or null. */
@@ -32,16 +31,18 @@ export class AuthService {
 
   constructor() {
     const user = this.current();
-    if (user) this.hotels.selectedId.set(user.defaultHotelId);
+    if (user) this.context.hotelId.set(user.defaultHotelId);
   }
 
-  /** Signs in and selects the user's default hotel. Rejects with the HTTP error on failure. */
-  async login(email: string, password: string): Promise<UserProfile> {
-    const { user } = await firstValueFrom(
-      this.http.post<{ user: UserProfile }>('/api/login', { email, password }),
-    );
+  /**
+   * Signs in and selects the user's default hotel. Resolves to undefined when the credentials
+   * are refused, and rejects when the API cannot be reached.
+   */
+  async login(email: string, password: string): Promise<UserProfile | undefined> {
+    const user = await this.api.login(email, password);
+    if (!user) return undefined;
     this.current.set(user);
-    this.hotels.selectedId.set(user.defaultHotelId);
+    this.context.hotelId.set(user.defaultHotelId);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
     } catch {

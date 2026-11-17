@@ -8,7 +8,7 @@
     "deploy": "ng build && wrangler deploy",
     "generate": "tsx scripts/generate.ts",
     "test": "vitest run",
-    "typecheck": "wrangler types && ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json"
+    "typecheck": "wrangler types && ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json && tsc -p tsconfig.spec.json --noEmit"
   },
   "private": true,
   "packageManager": "npm@10.9.9",

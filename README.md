@@ -5,8 +5,14 @@ server, all reading `data/data.json` through the semantic layer in `shared/`.
 
 ## Layout
 
-- `src/` — Angular app (standalone components, signals, Tailwind v4, ngx-echarts). Imports the
-  shared module as `@shared/*`.
+- `src/app/` — Angular app (standalone components, signals, Tailwind v4, ngx-echarts). Imports the
+  shared module as `@shared/*`. The rules for what may import what are in `CLAUDE.md`.
+  - `core/` — `auth`, `api` (the only HTTP client), `context` (selected hotel and period) and
+    `layout` (the frame around signed-in pages)
+  - `features/` — one lazy-loaded folder per route: `login`, `briefing`, `explore`
+  - `ui/` — presentational pieces; for now only the chart theme
+  - `util/` — formatting and date helpers
+- `src/styles/` — design tokens and the Tailwind entry point.
 - `worker/index.ts` — the Worker, bundled by Wrangler. It loops over the tool registry:
   - `GET /api/<name>` for every tool, with query parameters checked by the tool's schema
   - `/mcp` → stateless MCP server with the same tools
@@ -46,8 +52,8 @@ security: `POST /api/login` accepts any non-empty password for the three demo us
 profile is kept in the browser's `localStorage` under `pulse.user`, and every API route and MCP
 tool answers without it. Do not put real data behind it.
 
-| Email               | User           | Role             | Default hotel         |
-| ------------------- | -------------- | ---------------- | --------------------- |
+| Email             | User           | Role             | Default hotel         |
+| ----------------- | -------------- | ---------------- | --------------------- |
 | `mark@pulse.com`  | Mark Devos     | General Manager  | Hotel Central         |
 | `sofia@pulse.com` | Sofia Marques  | Revenue Director | Marina Resort Algarve |
 | `tomas@pulse.com` | Tomas Ferreira | F&B Manager      | Marina Resort Algarve |

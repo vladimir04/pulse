@@ -1,0 +1,23 @@
+/*
+ * Design tokens. These are placeholders until the design is ported: the colours the chart
+ * already used, plus one colour per booking channel.
+ */
+:root {
+  /* Chart series by role, and chart furniture */
+  --chart-current: #2a78d6;
+  --chart-last-year: #898781;
+  --chart-axis-label: #898781;
+  --chart-axis-line: #c3c2b7;
+  --chart-grid-line: #e1e0d9;
+
+  /*
+   * One colour per entity, the same in every chart. Expedia, corporate and travel agents are
+   * below 3:1 against a light surface, so a chart that uses them needs visible labels.
+   */
+  --chart-entity-direct: #2a78d6;
+  --chart-entity-booking-com: #eb6834;
+  --chart-entity-expedia: #1baf7a;
+  --chart-entity-corporate: #eda100;
+  --chart-entity-travel-agents: #e87ba4;
+  --chart-entity-other: #898781;
+}

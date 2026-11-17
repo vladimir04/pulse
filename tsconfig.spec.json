@@ -3,7 +3,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      // Specs get stand-ins for the icons: see src/app/testing/icons.ts.
+      "@lucide/angular": ["./src/app/testing/icons.ts"]
+    }
   },
   "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
 }

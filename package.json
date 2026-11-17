@@ -7,7 +7,8 @@
     "build": "ng build",
     "deploy": "ng build && wrangler deploy",
     "generate": "tsx scripts/generate.ts",
-    "test": "vitest run",
+    "test": "vitest run && ng test --no-watch",
+    "test:coverage": "ng test --no-watch --coverage",
     "typecheck": "wrangler types && ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json && tsc -p tsconfig.spec.json --noEmit"
   },
   "private": true,
@@ -34,6 +35,8 @@
     "@angular/cli": "^22.2.7",
     "@angular/compiler-cli": "^22.2.0",
     "@tailwindcss/postcss": "^4.3.5",
+    "@vitest/coverage-v8": "^5.1.0",
+    "jsdom": "^31.0.1",
     "postcss": "^8.5.33",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.3.5",

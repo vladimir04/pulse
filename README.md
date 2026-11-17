@@ -5,6 +5,19 @@ server, all reading `data/data.json` through the semantic layer in `shared/`.
 
 ## Stack
 
+| Layer            | Technology                                                                                                            |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| App              | Angular 22: standalone components, signals, zoneless change detection, `httpResource` for loading, lazy-loaded routes |
+| Styling          | Tailwind CSS v4 on the design tokens in `src/styles/tokens.css`                                                       |
+| UI               | Angular CDK for menus and overlays; Lucide icons (`@lucide/angular`)                                                  |
+| Charts           | ECharts 6 through ngx-echarts, downloaded with the first chart rather than with the app                               |
+| API and hosting  | One Cloudflare Worker (Wrangler 4) serving the JSON API, the MCP server and the built SPA as static assets            |
+| MCP              | `@modelcontextprotocol/server` behind the stateless handler from `agents`                                             |
+| Semantic layer   | Plain TypeScript in `shared/`, shared by the app and the Worker; Zod 4 validates every query's input                  |
+| Data             | A seeded generator (`scripts/generate.ts`, run with tsx) writes `data/data.json`; there is no database                |
+| Language, format | TypeScript 6, Prettier                                                                                                |
+| Tests            | Vitest 5; the app's specs run through Angular's `ng test` builder on jsdom                                            |
+
 ## Structure
 
 - `src/app/` — Angular app (standalone components, signals, Tailwind v4, ngx-echarts). Imports the
@@ -29,6 +42,24 @@ server, all reading `data/data.json` through the semantic layer in `shared/`.
   - `tools.ts` — the tool registry
 - `data/data.json` — two years of daily data for two hotels, plus booking snapshots and events.
   Written by `scripts/generate.ts`; do not edit by hand.
+
+## Testing
+
+`npm test` runs two suites, one after the other.
+
+| Suite          | Files                                               | Runner                                             | Size                  |
+| -------------- | --------------------------------------------------- | -------------------------------------------------- | --------------------- |
+| Semantic layer | `shared/*.test.ts`                                  | Vitest on Node                                     | 6 tests               |
+| App            | `src/app/**/*.spec.ts`, next to the file under test | `ng test`: Vitest with jsdom and Angular's TestBed | 100 tests in 19 files |
+
+- **Stand-ins.** `src/app/testing/` holds the fixtures and helpers. Charts are swapped for empty
+  components, because jsdom has no canvas. Lucide icons resolve to the stand-ins in
+  `src/app/testing/icons.ts` (mapped in `tsconfig.spec.json`), because the real package loads
+  every icon and made the run several times slower; an icon the app starts using needs a line
+  there.
+
+`npm run test:coverage` prints a coverage report for the app specs. They reach about 80% of the
+app's statements when files without a spec are counted too.
 
 ## Tools
 
@@ -66,15 +97,16 @@ The role only changes the order of insights: `get_insights` and `/api/insights` 
 
 ## Scripts
 
-| Script               | What it does                                                          |
-| -------------------- | --------------------------------------------------------------------- |
-| `npm run dev:worker` | `wrangler dev` on http://localhost:8787 (needs `npm run build` once)  |
-| `npm run dev`        | `ng serve` on http://localhost:4200, proxying `/api` and `/mcp` to it |
-| `npm run build`      | Builds the SPA into `dist/pulse/browser`                              |
-| `npm run typecheck`  | Generates Worker types, then type-checks the app and the Worker       |
-| `npm test`           | Runs the vitest file for the formulas and the planted stories         |
-| `npm run deploy`     | Builds the SPA and deploys the Worker with its assets                 |
-| `npm run generate`   | Rewrites `data/data.json` (seeded, so the output is always the same)  |
+| Script                  | What it does                                                           |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `npm run dev:worker`    | `wrangler dev` on http://localhost:8787 (needs `npm run build` once)   |
+| `npm run dev`           | `ng serve` on http://localhost:4200, proxying `/api` and `/mcp` to it  |
+| `npm run build`         | Builds the SPA into `dist/pulse/browser`                               |
+| `npm run typecheck`     | Generates Worker types, then type-checks the app and the Worker        |
+| `npm test`              | Runs the semantic-layer tests (vitest), then the app specs (`ng test`) |
+| `npm run test:coverage` | Runs the app specs with a coverage report                              |
+| `npm run deploy`        | Builds the SPA and deploys the Worker with its assets                  |
+| `npm run generate`      | Rewrites `data/data.json` (seeded, so the output is always the same)   |
 
 For local development run `npm run build` once, then `npm run dev:worker` and `npm run dev` in
 two terminals.

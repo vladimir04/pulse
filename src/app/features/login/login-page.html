@@ -1,33 +1,95 @@
-<main class="mx-auto max-w-sm p-6">
-  <h1 class="text-2xl font-semibold">Sign in</h1>
-  <form class="mt-6 flex flex-col gap-3" (submit)="signIn($event, email.value, password.value)">
-    <label class="flex flex-col gap-1 text-sm">
-      Email
-      <input
-        #email
-        class="rounded border border-gray-300 px-2 py-1"
-        type="email"
-        name="email"
-        autocomplete="username"
-        required
-      />
-    </label>
-    <label class="flex flex-col gap-1 text-sm">
-      Password
-      <input
-        #password
-        class="rounded border border-gray-300 px-2 py-1"
-        type="password"
-        name="password"
-        autocomplete="current-password"
-        required
-      />
-    </label>
-    <button class="rounded border border-gray-300 px-2 py-1" type="submit" [disabled]="pending()">
-      {{ pending() ? 'Signing in…' : 'Sign in' }}
-    </button>
-    @if (error(); as message) {
-      <p class="text-sm text-red-700" role="alert">{{ message }}</p>
-    }
-  </form>
-</main>
+<div class="flex min-h-screen font-sans text-ui text-ink antialiased">
+  <div class="flex items-center justify-center w-[45%] shrink-0 bg-sidebar">
+    <div class="flex flex-col gap-2 w-[360px]">
+      <span class="flex items-baseline gap-1 text-white">
+        <span class="text-headline font-medium tracking-[-0.02em]">pulse</span>
+        <app-pulse-dot size="md" />
+      </span>
+      <p class="text-insight text-white/70">The answers come to you.</p>
+    </div>
+  </div>
+
+  <main class="flex items-center justify-center w-[55%] shrink-0 bg-page">
+    <form class="flex flex-col w-[360px]" novalidate (submit)="signIn($event, passwordField)">
+      <h1 class="text-[20px] leading-7 font-medium">Sign in to Pulse</h1>
+      <div class="flex flex-col gap-3 mt-6">
+        <div class="flex flex-col">
+          <label for="email" class="mb-2 text-secondary">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="username"
+            class="h-10 min-w-0 px-3 rounded-md border bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+            [class]="emailError()?.unknown ? 'border-critical' : 'border-line'"
+            [value]="email()"
+            [readOnly]="loading()"
+            [attr.aria-invalid]="emailError()?.unknown ? 'true' : null"
+            [attr.aria-describedby]="emailError() ? 'email-error' : null"
+            (input)="email.set($any($event.target).value)"
+          />
+          <p id="email-error" aria-live="polite" class="min-h-4 mt-1 text-table text-critical">
+            {{ emailError()?.text }}
+          </p>
+        </div>
+        <div class="relative flex flex-col">
+          <label for="password" class="mb-2 text-secondary">Password</label>
+          <input
+            #passwordField
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            class="h-10 min-w-0 px-3 rounded-md border bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+            [class]="passwordError() ? 'border-critical' : 'border-line'"
+            [value]="password()"
+            [readOnly]="loading()"
+            [attr.aria-invalid]="passwordError() ? 'true' : null"
+            [attr.aria-describedby]="passwordError() ? 'password-error' : null"
+            (input)="password.set($any($event.target).value)"
+          />
+          <!-- Sits in the gap above the button, so the form keeps the mockup's spacing. -->
+          <p
+            id="password-error"
+            aria-live="polite"
+            class="absolute top-full left-0 mt-1 text-table text-critical"
+          >
+            {{ passwordError() }}
+          </p>
+        </div>
+      </div>
+      @if (loading()) {
+        <button
+          type="submit"
+          disabled
+          aria-busy="true"
+          class="relative flex items-center justify-center h-10 mt-8 rounded-full bg-ink text-white font-medium disabled:cursor-default"
+        >
+          <span class="invisible">Sign in</span>
+          <span class="absolute inset-0 flex items-center justify-center"><app-pulse-dot /></span>
+          <span class="sr-only">Signing in</span>
+        </button>
+      } @else {
+        <button
+          type="submit"
+          class="relative flex items-center justify-center h-10 mt-8 rounded-full bg-ink text-white font-medium transition-colors duration-150 ease-out hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+        >
+          Sign in
+        </button>
+      }
+      <div class="flex flex-col items-start gap-2 mt-10" role="group" aria-labelledby="demo-label">
+        <span id="demo-label" class="text-table text-muted">Try a demo account</span>
+        @for (account of accounts; track account.id) {
+          <button
+            type="button"
+            class="flex items-center gap-1 h-8 px-3 rounded-md border border-line bg-card text-table transition-colors duration-150 ease-out hover:border-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+            (click)="useAccount(account.email, passwordField)"
+          >
+            <span class="font-medium">{{ account.firstName }} {{ account.lastName }}</span
+            ><span class="text-secondary">· {{ account.roleLabel }}</span>
+          </button>
+        }
+      </div>
+    </form>
+  </main>
+</div>

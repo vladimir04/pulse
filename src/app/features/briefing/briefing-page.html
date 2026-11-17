@@ -1,21 +1,20 @@
-<main class="mx-auto max-w-3xl p-6">
+<main class="flex flex-col gap-6 w-full max-w-[1220px] mx-auto px-8 pt-6 pb-8">
   @if (auth.user(); as user) {
-    <h1 class="text-2xl font-semibold">{{ greeting }}, {{ user.firstName }}</h1>
-    <p class="text-sm text-gray-500">Ranked for a {{ user.roleLabel }}</p>
+    <p class="text-secondary">{{ greeting }}, {{ user.firstName }}</p>
   }
 
   @if (insights.hasValue()) {
-    <ol class="mt-6 flex flex-col gap-3">
+    <section class="flex flex-col gap-4" aria-label="Insights">
       @for (insight of insights.value(); track insight.id) {
-        <li class="rounded border border-gray-200 p-4">
-          <p class="text-sm text-gray-500">{{ insight.severity }} · {{ insight.category }}</p>
-          <p>{{ insight.headline }}</p>
-        </li>
+        <article class="flex flex-col items-start gap-2 p-4 rounded-md border border-line bg-card">
+          <app-severity-badge [severity]="insight.severity" />
+          <h2 class="text-insight font-normal">{{ insight.headline }}</h2>
+        </article>
       }
-    </ol>
+    </section>
   } @else if (insights.error()) {
-    <p class="mt-6 text-red-700">Could not load insights. Is the Worker running?</p>
+    <p class="text-critical">Could not load insights. Is the Worker running?</p>
   } @else {
-    <p class="mt-6 text-gray-500">Loading insights…</p>
+    <p class="text-secondary">Loading insights…</p>
   }
 </main>

@@ -1,0 +1,130 @@
+@if (collapsed()) {
+  <nav
+    class="sticky top-0 h-screen flex flex-col w-14 shrink-0 bg-sidebar"
+    aria-label="Primary, collapsed"
+  >
+    <div class="flex items-center justify-center h-14">
+      <app-pulse-dot motion="still" />
+    </div>
+    <ul class="flex flex-col items-center">
+      <li class="group relative">
+        <a
+          #briefing="routerLinkActive"
+          routerLink="/briefing"
+          routerLinkActive
+          ariaCurrentWhenActive="page"
+          aria-label="Briefing"
+          class="flex items-center justify-center size-8 rounded-md transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          [class]="
+            briefing.isActive
+              ? 'bg-white/10 text-white'
+              : 'text-white/70 hover:bg-white/5 hover:text-white'
+          "
+        >
+          <svg lucideNewspaper class="size-4 shrink-0"></svg>
+        </a>
+        <span
+          role="tooltip"
+          class="absolute left-10 top-1 z-10 flex items-center h-6 px-2 rounded-md border border-line bg-card shadow-overlay text-table text-ink whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100"
+          >Briefing</span
+        >
+      </li>
+      <li class="group relative">
+        <a
+          #explore="routerLinkActive"
+          routerLink="/explore"
+          routerLinkActive
+          ariaCurrentWhenActive="page"
+          aria-label="Explore"
+          class="flex items-center justify-center size-8 rounded-md transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          [class]="
+            explore.isActive
+              ? 'bg-white/10 text-white'
+              : 'text-white/70 hover:bg-white/5 hover:text-white'
+          "
+        >
+          <svg lucideCompass class="size-4 shrink-0"></svg>
+        </a>
+        <span
+          role="tooltip"
+          class="absolute left-10 top-1 z-10 flex items-center h-6 px-2 rounded-md border border-line bg-card shadow-overlay text-table text-ink whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-within:opacity-100"
+          >Explore</span
+        >
+      </li>
+    </ul>
+    <div class="flex flex-col items-center pb-2 mt-auto">
+      <button
+        type="button"
+        aria-label="Expand sidebar"
+        class="flex items-center justify-center size-8 rounded-md text-white/70 transition-colors duration-150 ease-out hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        (click)="toggle()"
+      >
+        <svg lucidePanelLeftOpen class="size-4 shrink-0"></svg>
+      </button>
+      <div class="self-stretch mx-2 mt-2 pt-2 border-t border-white/10">
+        <app-user-menu collapsed />
+      </div>
+    </div>
+  </nav>
+} @else {
+  <nav
+    class="sticky top-0 h-screen flex flex-col w-[220px] shrink-0 bg-sidebar"
+    aria-label="Primary"
+  >
+    <div class="flex items-center h-14 px-4">
+      <span class="flex items-baseline gap-[3px] text-white">
+        <span class="text-[20px] leading-6 font-medium tracking-[-0.02em]">pulse</span>
+        <app-pulse-dot />
+      </span>
+    </div>
+    <ul class="flex flex-col px-2">
+      <li>
+        <a
+          #briefing="routerLinkActive"
+          routerLink="/briefing"
+          routerLinkActive
+          ariaCurrentWhenActive="page"
+          class="flex items-center gap-2 h-8 px-2 rounded-md transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          [class]="
+            briefing.isActive
+              ? 'bg-white/10 text-white'
+              : 'text-white/70 hover:bg-white/5 hover:text-white'
+          "
+        >
+          <svg lucideNewspaper class="size-4 shrink-0"></svg>
+          <span>Briefing</span>
+        </a>
+      </li>
+      <li>
+        <a
+          #explore="routerLinkActive"
+          routerLink="/explore"
+          routerLinkActive
+          ariaCurrentWhenActive="page"
+          class="flex items-center gap-2 h-8 px-2 rounded-md transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          [class]="
+            explore.isActive
+              ? 'bg-white/10 text-white'
+              : 'text-white/70 hover:bg-white/5 hover:text-white'
+          "
+        >
+          <svg lucideCompass class="size-4 shrink-0"></svg>
+          <span>Explore</span>
+        </a>
+      </li>
+    </ul>
+    <div class="flex flex-col px-2 pb-2 mt-auto">
+      <button
+        type="button"
+        class="flex items-center gap-2 h-8 px-2 rounded-md text-white/70 transition-colors duration-150 ease-out hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        (click)="toggle()"
+      >
+        <svg lucidePanelLeftClose class="size-4 shrink-0"></svg>
+        <span>Collapse</span>
+      </button>
+      <div class="mt-2 pt-2 border-t border-white/10">
+        <app-user-menu />
+      </div>
+    </div>
+  </nav>
+}

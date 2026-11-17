@@ -1,2 +1,24 @@
 @import 'tailwindcss';
 @import './tokens.css';
+@import '@angular/cdk/overlay-prebuilt.css';
+
+@layer base {
+  /* A border with no colour class is a hairline, as in the design export. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
+  summary {
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/* Figures of equal width, so numbers line up. On every element that shows a formatted number. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}

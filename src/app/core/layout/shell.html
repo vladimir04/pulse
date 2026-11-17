@@ -1,23 +1,7 @@
-@if (auth.user(); as user) {
-  <header class="flex flex-wrap items-center gap-4 border-b border-gray-200 px-6 py-3 text-sm">
-    <nav class="flex gap-4">
-      <a routerLink="/briefing" routerLinkActive="font-semibold">Briefing</a>
-      <a routerLink="/explore" routerLinkActive="font-semibold">Explore</a>
-    </nav>
-    <label class="ml-auto flex items-center gap-2">
-      Hotel
-      <select class="rounded border border-gray-300 px-2 py-1" (change)="selectHotel($event)">
-        @for (hotel of context.hotels(); track hotel.id) {
-          <option [value]="hotel.id" [selected]="hotel.id === context.hotelId()">
-            {{ hotel.name }}
-          </option>
-        }
-      </select>
-    </label>
-    <span>{{ user.firstName }} {{ user.lastName }} · {{ user.roleLabel }}</span>
-    <button class="rounded border border-gray-300 px-2 py-1" type="button" (click)="auth.logout()">
-      Sign out
-    </button>
-  </header>
-}
-<router-outlet />
+<div class="flex min-h-screen bg-page font-sans text-ui text-ink tabular-nums antialiased">
+  <app-sidebar />
+  <div class="flex flex-col flex-1 min-w-0">
+    <app-top-bar />
+    <router-outlet />
+  </div>
+</div>

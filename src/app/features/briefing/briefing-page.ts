@@ -3,10 +3,13 @@ import { greeting } from '@shared/users';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { HotelContextService } from '../../core/context/hotel-context.service';
+import { SeverityBadge } from '../../ui/severity-badge';
 
 /** Placeholder briefing: the selected hotel's insights, ranked for the signed-in user's role. */
 @Component({
   selector: 'app-briefing-page',
+  imports: [SeverityBadge],
+  host: { class: 'contents' },
   templateUrl: './briefing-page.html',
 })
 export class BriefingPage {

@@ -1,40 +1,38 @@
 <main class="mx-auto max-w-3xl p-6">
   @if (view(); as view) {
-    <h1 class="text-2xl font-semibold">{{ view.hotel.name }}</h1>
-    <p class="text-sm text-gray-500">
-      {{ view.hotel.rooms }} rooms · {{ view.from }} to {{ view.to }}
-    </p>
+    <h1 class="text-headline font-normal">{{ view.hotel.name }}</h1>
+    <p class="text-secondary">{{ view.hotel.rooms }} rooms · {{ view.from }} to {{ view.to }}</p>
 
     @if (kpis.hasValue()) {
       <dl class="mt-6 grid grid-cols-3 gap-4">
-        <div class="rounded border border-gray-200 p-4">
-          <dt class="text-sm text-gray-500">Occupancy</dt>
-          <dd class="text-2xl font-semibold">
+        <div class="rounded-md border border-line bg-card p-4">
+          <dt class="text-secondary">Occupancy</dt>
+          <dd class="text-kpi font-medium">
             {{ kpis.value().occupancy.value | number: '1.1-1' }}%
           </dd>
         </div>
-        <div class="rounded border border-gray-200 p-4">
-          <dt class="text-sm text-gray-500">ADR</dt>
-          <dd class="text-2xl font-semibold">
+        <div class="rounded-md border border-line bg-card p-4">
+          <dt class="text-secondary">ADR</dt>
+          <dd class="text-kpi font-medium">
             {{ kpis.value().averageDailyRate.value | number: '1.2-2' }}
           </dd>
         </div>
-        <div class="rounded border border-gray-200 p-4">
-          <dt class="text-sm text-gray-500">RevPAR</dt>
-          <dd class="text-2xl font-semibold">
+        <div class="rounded-md border border-line bg-card p-4">
+          <dt class="text-secondary">RevPAR</dt>
+          <dd class="text-kpi font-medium">
             {{ kpis.value().revenuePerAvailableRoom.value | number: '1.2-2' }}
           </dd>
         </div>
       </dl>
     } @else if (kpis.error()) {
-      <p class="mt-6 text-red-700">Could not load KPIs from /api/kpis. Is the Worker running?</p>
+      <p class="mt-6 text-critical">Could not load KPIs from /api/kpis. Is the Worker running?</p>
     } @else {
-      <p class="mt-6 text-gray-500">Loading KPIs…</p>
+      <p class="mt-6 text-secondary">Loading KPIs…</p>
     }
 
-    <h2 class="mt-8 text-sm text-gray-500">Occupancy per day</h2>
+    <h2 class="mt-8 text-secondary">Occupancy per day</h2>
     <div echarts [options]="chartOptions()" class="h-72"></div>
   } @else {
-    <p class="text-gray-500">Loading data…</p>
+    <p class="text-secondary">Loading data…</p>
   }
 </main>

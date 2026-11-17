@@ -1,0 +1,53 @@
+@if (auth.user(); as user) {
+  @let name = user.firstName + ' ' + user.lastName;
+
+  @if (collapsed()) {
+    <button
+      type="button"
+      class="flex items-center justify-center size-10 rounded-md cursor-pointer transition-colors duration-150 ease-out hover:bg-white/5 aria-expanded:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      [attr.aria-label]="name + ', ' + user.roleLabel + '. Account menu'"
+      [cdkMenuTriggerFor]="menu"
+      [cdkMenuPosition]="above"
+    >
+      <app-avatar [initials]="user.initials" />
+    </button>
+  } @else {
+    <button
+      type="button"
+      class="flex items-center gap-2 w-full h-12 px-2 rounded-md cursor-pointer text-left transition-colors duration-150 ease-out hover:bg-white/5 aria-expanded:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      [cdkMenuTriggerFor]="menu"
+      [cdkMenuPosition]="above"
+    >
+      <app-avatar [initials]="user.initials" />
+      <span class="flex flex-col min-w-0">
+        <span class="font-medium text-white truncate">{{ name }}</span>
+        <span class="text-table text-white/70 truncate">{{ user.roleLabel }}</span>
+      </span>
+    </button>
+  }
+
+  <ng-template #menu>
+    <div
+      cdkMenu
+      class="flex flex-col w-[240px] rounded-md border border-line bg-card shadow-overlay text-ink"
+    >
+      <div class="flex flex-col px-4 py-3">
+        <span class="font-medium truncate">{{ name }}</span>
+        <span class="text-table text-secondary truncate">{{ user.email }}</span>
+        <span class="text-table text-secondary truncate">{{ user.roleLabel }}</span>
+      </div>
+      <div class="h-px bg-line"></div>
+      <div class="flex flex-col p-2">
+        <button
+          type="button"
+          cdkMenuItem
+          class="w-full flex items-center gap-2 h-8 px-2 rounded-md transition-colors duration-150 ease-out hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+          (cdkMenuItemTriggered)="auth.logout()"
+        >
+          <svg lucideLogOut class="size-4 shrink-0"></svg>
+          <span>Sign out</span>
+        </button>
+      </div>
+    </div>
+  </ng-template>
+}

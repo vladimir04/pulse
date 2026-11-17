@@ -1,21 +1,12 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthService } from '../auth/auth.service';
-import { HotelContextService } from '../context/hotel-context.service';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { Sidebar } from './sidebar';
+import { TopBar } from './top-bar';
 
-/** Placeholder frame for signed-in pages: navigation, hotel switcher and user block. */
+/** The frame around every signed-in page: sidebar, top context bar, then the page. */
 @Component({
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   selector: 'app-shell',
+  imports: [RouterOutlet, Sidebar, TopBar],
   templateUrl: './shell.html',
 })
-export class Shell {
-  protected readonly auth = inject(AuthService);
-  protected readonly context = inject(HotelContextService);
-
-  protected selectHotel(event: Event): void {
-    const id = (event.target as HTMLSelectElement).value;
-    const hotel = this.context.hotels().find((candidate) => candidate.id === id);
-    if (hotel) this.context.hotelId.set(hotel.id);
-  }
-}
+export class Shell {}

@@ -1,23 +1,126 @@
 /*
- * Design tokens. These are placeholders until the design is ported: the colours the chart
- * already used, plus one colour per booking channel.
+ * Pulse design tokens, from design/tokens.css. They sit in @theme so Tailwind builds its
+ * utilities from them: text-headline, bg-page, rounded-md, shadow-overlay, animate-pulse.
+ * `static` keeps every token in the output even when no class uses it, because the charts read
+ * their colours from these variables at runtime.
+ *
+ * Tailwind's own colours, type scale, weights, radii, shadows and animations are switched off
+ * first, so a class can only resolve to a token.
  */
-:root {
-  /* Chart series by role, and chart furniture */
-  --chart-current: #2a78d6;
-  --chart-last-year: #898781;
-  --chart-axis-label: #898781;
-  --chart-axis-line: #c3c2b7;
-  --chart-grid-line: #e1e0d9;
+@theme static {
+  --color-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --animate-*: initial;
 
-  /*
-   * One colour per entity, the same in every chart. Expedia, corporate and travel agents are
-   * below 3:1 against a light surface, so a chart that uses them needs visible labels.
-   */
-  --chart-entity-direct: #2a78d6;
-  --chart-entity-booking-com: #eb6834;
-  --chart-entity-expedia: #1baf7a;
-  --chart-entity-corporate: #eda100;
-  --chart-entity-travel-agents: #e87ba4;
-  --chart-entity-other: #898781;
+  /* Neutrals */
+  --color-page: #fafafa;
+  --color-card: #ffffff;
+  --color-line: #e4e6ea;
+  --color-ink: #101418;
+  --color-secondary: #3a3f47;
+  --color-muted: #8a9199;
+  --color-sidebar: #101418;
+  /* White text and marks on charcoal. Named in the design README; missing from its tokens.css. */
+  --color-white: #ffffff;
+
+  /* Accent lavender. At most 5% of any screen. */
+  --color-accent: #9d8df1;
+  --color-accent-ink: #6f5fd8;
+  --color-accent-hover: #865cc8;
+  --color-accent-tint: #eeebfc;
+
+  /* Entities, bound in every chart and table */
+  --color-direct: #9d8df1;
+  --color-booking: #32bdbf;
+  --color-expedia: #4fa3f8;
+  --color-corporate: #4f5e7d;
+  --color-agents: #fe7637;
+  --color-last-year: #8a9199; /* always dashed */
+
+  /* Severity: ink on tint */
+  --color-critical: #d23f31;
+  --color-critical-tint: #fbeae7;
+  --color-warning: #b85c0a;
+  --color-warning-tint: #fff1e8;
+  --color-positive: #1e8e5a;
+  --color-positive-tint: #e8f6ef;
+  --color-info: #4f5e7d;
+  --color-info-tint: #f3f4f6;
+
+  /* Type. Weights 400 and 500 only. */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --text-headline: 28px;
+  --text-headline--line-height: 36px;
+  --text-insight: 18px;
+  --text-insight--line-height: 24px;
+  --text-kpi: 22px;
+  --text-kpi--line-height: 28px;
+  --text-title: 14px;
+  --text-title--line-height: 20px;
+  --text-ui: 13px;
+  --text-ui--line-height: 20px;
+  --text-table: 12px;
+  --text-table--line-height: 16px;
+
+  /* Shape and layout. Layout spacing uses multiples of 8px. */
+  --spacing: 4px;
+  --radius-md: 6px;
+  --radius-full: 9999px;
+  --shadow-overlay: 0 2px 6px rgb(16 20 24 / 0.08);
+  --sidebar-width: 220px;
+  --sidebar-width-collapsed: 56px;
+  --topbar-height: 56px;
+  --control-height: 32px;
+  --row-height: 32px;
+  --card-padding: 16px;
+
+  /* Motion */
+  --animate-pulse: pulse 1600ms ease-in-out infinite;
+  --animate-ring: ring 2000ms ease-out infinite;
+  --animate-draw: draw 400ms ease-out both;
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+  @keyframes ring {
+    from {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+  @keyframes draw {
+    from {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

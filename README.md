@@ -3,7 +3,9 @@
 Hotel analytics prototype. One Cloudflare Worker serves an Angular SPA, a JSON API and an MCP
 server, all reading `data/data.json` through the semantic layer in `shared/`.
 
-## Layout
+## Stack
+
+## Structure
 
 - `src/app/` — Angular app (standalone components, signals, Tailwind v4, ngx-echarts). Imports the
   shared module as `@shared/*`. The rules for what may import what are in `CLAUDE.md`.

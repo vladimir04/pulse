@@ -1,0 +1,120 @@
+<header class="flex flex-wrap items-center gap-2 min-h-14 px-8 py-2 border-b border-line bg-card">
+  <button
+    type="button"
+    class="flex items-center gap-2 h-8 px-2 rounded-md border border-line bg-card transition-colors duration-150 ease-out hover:bg-page aria-expanded:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+    [cdkMenuTriggerFor]="hotelMenu"
+    [cdkMenuPosition]="below"
+  >
+    <span class="font-medium">{{ context.hotel()?.name }}</span>
+    <svg lucideChevronsUpDown class="size-4 shrink-0 text-muted"></svg>
+  </button>
+  <ng-template #hotelMenu>
+    <ul
+      cdkMenu
+      class="flex flex-col w-[240px] p-2 rounded-md border border-line bg-card shadow-overlay"
+    >
+      @for (hotel of context.hotels(); track hotel.id) {
+        @let selected = hotel.id === context.hotelId();
+        <li role="none">
+          <button
+            type="button"
+            cdkMenuItemRadio
+            class="flex items-center justify-between w-full h-8 px-2 rounded-md focus-visible:outline-2 focus-visible:outline-accent-ink"
+            [class]="
+              selected
+                ? 'font-medium text-accent-ink'
+                : 'transition-colors duration-150 ease-out hover:bg-page'
+            "
+            [cdkMenuItemChecked]="selected"
+            (cdkMenuItemTriggered)="context.hotelId.set(hotel.id)"
+          >
+            <span>{{ hotel.name }}</span>
+            @if (selected) {
+              <svg lucideCheck class="size-4 shrink-0"></svg>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  </ng-template>
+
+  <button
+    type="button"
+    class="flex items-center gap-2 h-8 px-2 rounded-md border border-line bg-card transition-colors duration-150 ease-out hover:bg-page aria-expanded:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+    [cdkMenuTriggerFor]="rangeMenu"
+    [cdkMenuPosition]="below"
+  >
+    <svg lucideCalendar class="size-4 shrink-0 text-muted"></svg>
+    <span class="tabular">{{ periodLabel() }}</span>
+    <svg lucideChevronDown class="size-4 shrink-0 text-muted"></svg>
+  </button>
+  <ng-template #rangeMenu>
+    <div
+      cdkMenu
+      class="flex flex-col w-[296px] p-2 rounded-md border border-line bg-card shadow-overlay"
+    >
+      <ul class="flex flex-col" role="none">
+        @for (preset of context.presets(); track preset.id) {
+          @let selected = isCurrent(preset.period);
+          <li role="none">
+            <button
+              type="button"
+              cdkMenuItemRadio
+              class="flex items-center justify-between w-full h-8 px-2 rounded-md focus-visible:outline-2 focus-visible:outline-accent-ink"
+              [class]="
+                selected
+                  ? 'font-medium text-accent-ink'
+                  : 'transition-colors duration-150 ease-out hover:bg-page'
+              "
+              [cdkMenuItemChecked]="selected"
+              (cdkMenuItemTriggered)="context.period.set(preset.period)"
+            >
+              <span>{{ preset.label }}</span>
+              @if (selected) {
+                <span class="flex items-center gap-2">
+                  <span class="text-table font-normal tabular">{{
+                    formatRange(preset.period, { year: false })
+                  }}</span>
+                  <svg lucideCheck class="size-4 shrink-0"></svg>
+                </span>
+              } @else {
+                <span class="text-table text-secondary tabular">{{
+                  formatRange(preset.period, { year: false })
+                }}</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </ng-template>
+
+  <button
+    type="button"
+    role="switch"
+    class="flex items-center gap-2 h-8 px-2 rounded-md transition-colors duration-150 ease-out hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+    [attr.aria-checked]="context.compareToLastYear()"
+    (click)="context.compareToLastYear.set(!context.compareToLastYear())"
+  >
+    @if (context.compareToLastYear()) {
+      <span class="relative w-8 h-4 shrink-0 rounded-full bg-ink" aria-hidden="true"
+        ><span class="absolute top-[2px] right-[2px] size-3 rounded-full bg-white"></span
+      ></span>
+    } @else {
+      <span class="relative w-8 h-4 shrink-0 rounded-full bg-muted" aria-hidden="true"
+        ><span class="absolute top-[2px] left-[2px] size-3 rounded-full bg-white"></span
+      ></span>
+    }
+    <span>vs last year</span>
+  </button>
+
+  <div class="flex items-center gap-2 ml-auto text-table text-secondary">
+    @if (asOfLabel(); as asOf) {
+      <app-pulse-dot tone="positive" motion="ring" size="md" />
+      <span class="tabular">As of {{ asOf }}</span>
+    } @else {
+      <app-pulse-dot tone="muted" motion="still" size="md" />
+      <span>Loading today’s figures</span>
+    }
+  </div>
+</header>

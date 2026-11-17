@@ -3,10 +3,14 @@ import { formatCurrency, formatDate, formatPercent, formatPoints } from './forma
 
 describe('format', () => {
   it('writes money compactly from a thousand up', () => {
-    expect([formatCurrency(186.4), formatCurrency(12_400), formatCurrency(-1_331_312)]).toEqual([
+    expect([formatCurrency(186.4), formatCurrency(12_400), formatCurrency(214_000)]).toEqual([
       '€186',
       '€12.4k',
-      '−€1.3M',
+      '€214k',
+    ]);
+    expect([formatCurrency(222_000, { fixed: true }), formatCurrency(-1_331_312)]).toEqual([
+      '€222.0k',
+      '−€1.33M',
     ]);
   });
 

@@ -1,30 +1,35 @@
 /*
- * Colours for charts, read from the design tokens in src/styles/tokens.css. Charts draw on a
- * canvas, which cannot resolve var(--…) itself, so the values are looked up here; that keeps
- * the tokens the single place a colour is defined.
+ * Colours and type for charts, read from the design tokens in src/styles/tokens.css. Charts
+ * draw on a canvas, which cannot resolve var(--…) itself, so the values are looked up here;
+ * the tokens stay the single place a colour is defined.
  */
 
-const token = (name: string): string =>
+export const token = (name: string): string =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
-/** Colours by the role a series plays, and for the axes and grid. Call when building a chart. */
+/** Colours by the role a series plays, and for the axes, grid and tooltip. */
 export const chartColors = () => ({
-  current: token('--chart-current'),
-  lastYear: token('--chart-last-year'),
-  axisLabel: token('--chart-axis-label'),
-  axisLine: token('--chart-axis-line'),
-  gridLine: token('--chart-grid-line'),
+  current: token('--color-ink'),
+  lastYear: token('--color-last-year'),
+  axisLabel: token('--color-secondary'),
+  axisLine: token('--color-line'),
+  gridLine: token('--color-line'),
+  card: token('--color-card'),
+  ink: token('--color-ink'),
 });
 
-/** The token of each entity that has a colour of its own, so it looks the same in every chart. */
-const ENTITY_TOKENS: Record<string, string> = {
-  direct: '--chart-entity-direct',
-  'booking-com': '--chart-entity-booking-com',
-  expedia: '--chart-entity-expedia',
-  corporate: '--chart-entity-corporate',
-  'travel-agents': '--chart-entity-travel-agents',
+/** Each entity keeps one colour in every chart and table. Keyed by booking channel id. */
+const ENTITIES: Record<string, { token: string; dot: string }> = {
+  direct: { token: '--color-direct', dot: 'bg-direct' },
+  'booking-com': { token: '--color-booking', dot: 'bg-booking' },
+  expedia: { token: '--color-expedia', dot: 'bg-expedia' },
+  corporate: { token: '--color-corporate', dot: 'bg-corporate' },
+  'travel-agents': { token: '--color-agents', dot: 'bg-agents' },
 };
 
-/** The colour of an entity series, by its id (a booking channel). */
+/** The colour of an entity's series in a chart. */
 export const entityColor = (entityId: string): string =>
-  token(ENTITY_TOKENS[entityId] ?? '--chart-entity-other');
+  token(ENTITIES[entityId]?.token ?? '--color-muted');
+
+/** The background class of an entity's dot in a table or legend. */
+export const entityDotClass = (entityId: string): string => ENTITIES[entityId]?.dot ?? 'bg-muted';

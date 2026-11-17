@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
-import { getKpis } from '../shared/queries';
+import { getHotel, getHotels, getKpis } from '../shared/queries';
 
 // The handler is stateless: it calls this factory to build a fresh server per request.
 function createServer(): McpServer {
@@ -11,15 +11,16 @@ function createServer(): McpServer {
     'get_kpis',
     {
       description:
-        'Occupancy (fraction 0-1), ADR and RevPAR for the hotel over an inclusive date range. ' +
+        'Occupancy (fraction 0-1), ADR and RevPAR for one hotel over an inclusive date range. ' +
         'Omit a bound to leave that side of the range open.',
       inputSchema: z.object({
+        hotelId: z.enum(getHotels().map((hotel) => hotel.id)).describe('Hotel id'),
         from: z.iso.date().optional().describe('First day, YYYY-MM-DD'),
         to: z.iso.date().optional().describe('Last day, YYYY-MM-DD'),
       }),
     },
-    async ({ from, to }) => ({
-      content: [{ type: 'text', text: JSON.stringify(getKpis({ from, to })) }],
+    async ({ hotelId, from, to }) => ({
+      content: [{ type: 'text', text: JSON.stringify(getKpis({ hotelId, from, to })) }],
     }),
   );
 
@@ -36,9 +37,18 @@ export default {
       return Response.json({ ok: true });
     }
 
+    if (request.method === 'GET' && url.pathname === '/api/hotels') {
+      return Response.json(getHotels());
+    }
+
     if (request.method === 'GET' && url.pathname === '/api/kpis') {
+      const hotelId = url.searchParams.get('hotelId');
+      if (!hotelId || !getHotel(hotelId)) {
+        return Response.json({ error: 'hotelId is missing or unknown' }, { status: 400 });
+      }
       return Response.json(
         getKpis({
+          hotelId,
           from: url.searchParams.get('from') || undefined,
           to: url.searchParams.get('to') || undefined,
         }),

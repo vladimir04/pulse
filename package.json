@@ -6,6 +6,7 @@
     "dev:worker": "wrangler dev",
     "build": "ng build",
     "deploy": "ng build && wrangler deploy",
+    "generate": "tsx scripts/generate.ts",
     "typecheck": "wrangler types && ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json"
   },
   "private": true,
@@ -34,6 +35,7 @@
     "postcss": "^8.5.33",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "wrangler": "^4.163.0"
   }

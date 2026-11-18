@@ -110,3 +110,38 @@ The role only changes the order of insights: `get_insights` and `/api/insights` 
 
 For local development run `npm run build` once, then `npm run dev:worker` and `npm run dev` in
 two terminals.
+
+## Ask setup
+
+The Ask drawer calls `POST /api/ask`. The Worker sends the question to Anthropic's Messages API,
+whose MCP connector calls the tools at `MCP_PUBLIC_URL`. Ask needs an Anthropic API key with
+access to the model selected by `MODEL` in `wrangler.jsonc`.
+
+For local development, add the following to `.dev.vars` in the project root (the file is
+gitignored):
+
+```dotenv
+ANTHROPIC_API_KEY=replace-with-your-api-key
+MCP_PUBLIC_URL=https://your-worker.your-subdomain.workers.dev/mcp
+```
+
+`MCP_PUBLIC_URL` must be a publicly reachable HTTPS URL ending in `/mcp`: Anthropic calls it
+from its servers, so `localhost` cannot work. The default in `wrangler.jsonc` points to the
+deployed demo. When using that endpoint locally, Ask reads the deployed tools and dataset;
+keep them in sync with the local app. To test local tool or data changes, expose the local
+Worker on port 8787 through a public HTTPS tunnel and use its `/mcp` URL instead. Restart
+`npm run dev:worker` after changing `.dev.vars`.
+
+For your own deployment, set `MCP_PUBLIC_URL` in `wrangler.jsonc` to that Worker's public
+`/mcp` URL, and check that `MODEL` is available to your Anthropic account. Store the API key as
+a Cloudflare Worker secret, then deploy:
+
+```sh
+npx wrangler secret put ANTHROPIC_API_KEY
+npm run deploy
+```
+
+Wrangler prompts for the key; `.dev.vars` is only used locally. The key stays in the Worker.
+To check the setup, sign in, open Ask and ask "Which booking channel keeps the most per room
+night?" If it fails, inspect the `POST /api/ask` response in the browser's Network panel for
+the error; the drawer currently shows a generic retry message.

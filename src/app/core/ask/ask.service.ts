@@ -26,7 +26,8 @@ export type AskStatus = 'idle' | 'loading' | 'answered' | 'error';
 
 /**
  * The Ask drawer's state: whether it is open, what is typed, what the answer will be about,
- * and the answers so far. Nothing is kept beyond the page: a reload starts empty.
+ * and the answers so far. Every opening starts empty, so an answer is only ever shown under
+ * the hotel and period it was asked about, and to the user who asked.
  */
 @Injectable({ providedIn: 'root' })
 export class AskService {
@@ -38,11 +39,14 @@ export class AskService {
   readonly question = signal('');
   /** What the next answer will be about; set each time the drawer opens. */
   readonly context = signal<AskContext | undefined>(undefined);
-  /** The answers of this session, newest first. */
+  /** The answers since the drawer was opened, newest first. */
   readonly history = signal<Answered[]>([]);
   readonly status = signal<AskStatus>('idle');
   /** The question being answered, or the one that failed. */
   readonly asked = signal<string | undefined>(undefined);
+
+  /** Counts the times the drawer started afresh; an answer asked for before the last one is dropped. */
+  private generation = 0;
 
   constructor() {
     // One user's answers are not shown to the next.
@@ -52,8 +56,12 @@ export class AskService {
     });
   }
 
-  /** Opens on the hotel and period on screen, or on an insight's with a question about it. */
+  /**
+   * Opens empty, on the hotel and period on screen, or on an insight's with a question about it.
+   * Earlier answers and anything left in the field belong to the last opening and are dropped.
+   */
   open(prefill?: AskPrefill): void {
+    this.clear();
     this.context.set(
       prefill
         ? { hotelId: prefill.hotelId, period: prefill.period }
@@ -76,16 +84,19 @@ export class AskService {
     this.question.set('');
     this.asked.set(text);
     this.status.set('loading');
+    const generation = this.generation;
     try {
       const { answer } = await this.api.ask({
         question: text,
         hotelId: context.hotelId,
         period: context.period,
       });
+      // The drawer has started afresh since: this answer belongs to what was cleared.
+      if (generation !== this.generation) return;
       this.history.update((history) => [{ ...answer, question: text }, ...history]);
       this.status.set('answered');
     } catch {
-      this.status.set('error');
+      if (generation === this.generation) this.status.set('error');
     }
   }
 
@@ -94,11 +105,17 @@ export class AskService {
     void this.ask(this.asked() ?? '');
   }
 
-  private reset(): void {
-    this.isOpen.set(false);
+  /** Forgets the answers, the question in the field and any answer still on its way. */
+  private clear(): void {
+    this.generation++;
     this.question.set('');
     this.history.set([]);
     this.status.set('idle');
     this.asked.set(undefined);
+  }
+
+  private reset(): void {
+    this.isOpen.set(false);
+    this.clear();
   }
 }
